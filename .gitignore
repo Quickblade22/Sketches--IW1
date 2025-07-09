@@ -2,4 +2,9 @@
 *.o
 
 # Ada Library Information
-*.ali
+*.txt
+*.rom
+*.pdf
+*.csv
+*.R
+*.bin
