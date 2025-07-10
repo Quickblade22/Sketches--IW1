@@ -1513,7 +1513,7 @@ struct SimPlanner : Planner {
 
         return boundary;
     }
-    std::vector<bool> check_sketches_preconditions (const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const SimPlanner& planner) const{
+    std::vector<bool> check_sketches_preconditions (const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const SimPlanner& planner, bool printing = false) const{
             std::vector<bool> sketches_pre(planner.sketches_.size(), false);
             for (size_t i = 0; i < sketches_.size(); ++i) {  
                     sketches_pre[i] = planner.sketches_[i].precondition(planner, pre, post);
@@ -1524,13 +1524,34 @@ struct SimPlanner : Planner {
                     
                 }else if (i == planner.priority_) sketches_pre[i] = sketches_[i].precondition(planner, pre,post); 
                 else sketches_pre[i] = false;*/
+            if(printing) {
+                std::cout << "Sketches pre: ";
+                for (const auto& sketch : sketches_pre) {
+                    std::cout << sketch << " ";
+                }
+                std::cout << std::endl;
+            }
             return sketches_pre;
     }
-    std::vector<bool> check_sketches_goals(const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const std::vector<pixel_t>& prevs, const SimPlanner& planner) const {
+    std::vector<bool> check_sketches_goals(const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const std::vector<pixel_t>& prevs, const SimPlanner& planner, bool printing = false) const {
         std::vector<bool> sketches_post(sketches_.size(), false);
         // Check current priority sketch
         for(size_t i = 0; i < planner.sketches_.size(); ++i) {
             sketches_post[i] = planner.sketches_[i].goal(planner, pre, post, prevs);
+        }
+        if(printing) {
+            std::cout << "Sketches post: ";
+            bool key = planner.ykey(post,pre);
+                int curr_dist = ykey_dist(post); 
+                int prev_dist = ykey_dist(pre);
+                int D = planner.calculate_distance_from_goal(post);
+                bool acquiring_key = (curr_dist+50 <= prev_dist && curr_dist >= 0 && prev_dist >= 0);
+                std::cout << "D: " << D << " | ykey: " << key << " | acquiring_key: " << acquiring_key << " post" <<std::endl;
+                std::cout << "Sketches post: ";
+                for (const auto& sketch : sketches_post) {
+                    std::cout << sketch << " ";
+                }
+                std::cout << std::endl;
         }
         return sketches_post;
         /*
@@ -1606,7 +1627,7 @@ struct SimPlanner : Planner {
                 if(prev_dist-curr_dist > 40 && impotant_debug && prev_dist >= 0 && curr_dist >= 0 ) std::cout << "ykey_dist: " << curr_dist << " (prev: " << prev_dist << ")" << std::endl;
                
                 int D = planner.calculate_distance_from_goal(curr);
-                bool acquiring_key = key || (curr_dist+30 < prev_dist && curr_dist >= 0 && prev_dist >= 0);
+                bool acquiring_key = key || (curr_dist+50 <= prev_dist && curr_dist >= 0 && prev_dist >= 0);
                 bool goal_achieved =  acquiring_key && D==1;
                 if(printing_sketches_){
                 std::cout << "SKETCH 0 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")

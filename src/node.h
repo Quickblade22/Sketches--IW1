@@ -475,7 +475,7 @@ class Node {
             }
             depth--;
         }
-        if(new_iw_debug) std::cout <<"this was the max_depth" << max_depth << " searched till" << depth << std::endl;
+        if(new_iw_debug) std::cout <<" return 0 path this was the max_depth " << max_depth << " searched till " << depth << std::endl;
         return {}; // No path found
     }
     

@@ -31,6 +31,7 @@ struct BfsIW : SimPlanner {
     mutable size_t root_height_;
     mutable bool random_decision_;
     int game; 
+    mutable std::deque<Action> fulfillment_branch_;
 
     BfsIW(ALEInterface &sim,
           size_t frameskip,
@@ -95,6 +96,7 @@ struct BfsIW : SimPlanner {
     }
     const bool printing_debug = false; // Set to true to enable debug printing
     const bool transition_printing_debug = true; // Set to true to enable transition debug printing
+    const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
     virtual Node* get_branch(ALEInterface &env,
                              const std::vector<Action> &prefix,
                              Node *root,
@@ -198,28 +200,41 @@ struct BfsIW : SimPlanner {
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
             //root->value_ != 0
             if( pres != 0 ) {
-            if(transition_printing_debug)   std::cout << "sketches exploitation with depth lookahead" << std::endl;
-            if(printing_debug) logging::Logger::Info << logging::Logger::green() << "exploitation with depth lookahead" << std::endl;
-                        // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
+               
 
-                        //const int lookahead_depth = 10; // Adjust this value as needed
-                        int actions = root->best_sketch_branch(branch, root->pre, depth_to_search, discount_, priority_,action_nr, ykeyt, bkeyt, yswrt, chalicet); 
-                        action_nr++;
-                        if(actions == 1) reset_item_state();
-                        /*if ((!branch.empty() )) {
-                               l for(const auto& action : branch) {
-                                    if(action == 1) {
-                                      reset_item_state(); // Reset item states if the first action is 1
-                                    if(transition_printing_debug) std::cout << "Resetting item states due to action 1" << std::endl;
-                                    break;    
-                                    }
-                                }
-                            }*/
-                        // Fallback if no branch was found (shouldn't happen)
-                        if (branch.empty()) {
-                            if(transition_printing_debug)  logging::Logger::Info << logging::Logger::green() << "fallback to original behavior " << std::endl;
-                            root->best_branch(branch, discount_);
+                if(transition_printing_debug)   std::cout << "sketches exploitation with depth lookahead" << std::endl;
+                if(printing_debug) logging::Logger::Info << logging::Logger::green() << "exploitation with depth lookahead" << std::endl;
+                // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
+                 //trial using fulfillment branch
+                 if(transition_printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
+                 if(!fulfillment_branch_.empty()) {
+                    if(transition_printing_debug) std::cout << "fulfillment branch is not empty, using it" << std::endl;
+                    if(transition_printing_debug) {
+                        std::cout << "Action in fulfillment branch: "; 
+                        for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
+                        std::cout  << std::endl;
+                    }
+                    branch = fulfillment_branch_;
+                    for(const auto& act:branch) {
+                        if(act == 1) {
+                            reset_item_state(); // Reset item states if the first action is 1
+                            if(printing_debug) std::cout << "Resetting item states due to action 1" << std::endl;
+                            break;    
                         }
+                    }
+                    fulfillment_branch_.clear();
+                }else {
+                    //const int lookahead_depth = 10; // Adjust this value as needed
+                    int actions = root->best_sketch_branch(branch, root->pre, depth_to_search, discount_, priority_,action_nr, ykeyt, bkeyt, yswrt, chalicet); 
+                    action_nr++;
+                    if(actions == 1) reset_item_state();
+                } 
+                
+                // Fallback if no branch was found (shouldn't happen)
+                if (branch.empty()) {
+                    if(transition_printing_debug)  logging::Logger::Info << logging::Logger::green() << "fallback to original behavior " << std::endl;
+                    root->best_branch(branch, discount_);
+                }
             } else {
                 if( random_actions_ ) {
                     random_decision_ = true;
@@ -273,6 +288,7 @@ struct BfsIW : SimPlanner {
         logging::Logger::Info << "queue: sz=" << q.size() << std::endl;
 
         // explore in breadth-first manner
+        int count = 0; 
         float start_time = Utils::read_time_in_seconds();
         while( !q.empty() && (int(simulator_calls_) < simulator_budget_) && (Utils::read_time_in_seconds() - start_time < time_budget_) ) {
             Node *node = q.top();
@@ -301,7 +317,47 @@ struct BfsIW : SimPlanner {
                     node->pre = check_sketches_preconditions(node->screen_pixels_, node->screen_pixels_, *this);
                     node->post = check_sketches_goals(node->screen_pixels_, node->screen_pixels_, node->screen_pixels_, *this);
             }
+            //trial setting the fulfillment branch
 
+            if( transition_printing_debug && !fulfillment_branch_.empty()  && count == 0) {
+                std::cout << "fulfillment not empty" << std::endl;
+                count ++;
+            }
+            if (fulfillment_branch_.empty()) {
+                for (size_t i = 0; i < node->post.size(); ++i) {
+                    if (root->pre[i] && node->post[i]) {
+                        // Reconstruct branch from root to this node
+                        std::deque<Action> temp_branch;
+                        Node* temp = node;
+                        while (temp != root) {
+                            temp_branch.push_front(temp->action_);
+                            temp = temp->parent_;
+                        }
+                        fulfillment_branch_ = temp_branch;
+                        if(transition_printing_debugs) {
+                            std::cout << "Setting fulfillment branch: ";
+                            for(const auto& act: fulfillment_branch_) std::cout << act << " ";
+                             std::vector<bool> temporary;
+                            std::cout << std::endl;
+                            if(node->parent_ != nullptr && !node->parent_->screen_pixels_.empty()) {
+                                    std::cout << "father present" << std::endl;
+                                    temporary = check_sketches_preconditions(node->parent_->screen_pixels_, node->screen_pixels_, *this,1);
+                                    std::vector<pixel_t> typical = node->parent_->screen_pixels_;
+                                    if(node->grandfather != nullptr && !node->grandfather->screen_pixels_.empty()) {
+                                        typical = node->grandfather->screen_pixels_;
+                                         std::cout << "grandfather present" << std::endl;
+                                    }
+                                    temporary = check_sketches_goals(node->parent_->screen_pixels_, node->screen_pixels_, typical, *this,1);
+                            } else {
+                                   temporary = check_sketches_preconditions(node->screen_pixels_, node->screen_pixels_, *this,1);
+                                    temporary = check_sketches_goals(node->screen_pixels_, node->screen_pixels_, node->screen_pixels_, *this,1);
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
             // check termination at this node
             if( node->terminal_ ) {
                 logging::Logger::Continuation(logging::Logger::Debug) << "t" << "," << std::flush;
@@ -377,6 +433,7 @@ struct BfsIW : SimPlanner {
         expand_time_ = 0;
         root_height_ = 0;
         random_decision_ = false;
+        fulfillment_branch_.clear();
     }
 
     void print_stats(logging::Logger::mode_t logger_mode, const Node &root, const std::map<int, std::vector<int> > &novelty_table_map) const {
