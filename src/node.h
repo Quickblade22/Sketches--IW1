@@ -390,6 +390,7 @@ class Node {
     // Builds best branch based on sketch potential
     int best_sketch_branch(std::deque<Action>& branch, const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int priority = 0, bool ykeyt = 0, bool bkeyt = 0, bool yswrt = 0, bool chalicet = 0,int action_nr=0) const {
         // Try to find shortest path to sketch fulfillment
+    if (new_iw_debug) std::cout << "Best_sketch_branch called with depth: " << lookahead_depth << std::endl;
     auto branchs = find_sketch_fulfillment_path(target_sketch, lookahead_depth);
     if(new_iw_debug) std::cout << "found a path" << branchs.size() << std::endl;
     if (!branchs.empty()) {
@@ -434,6 +435,7 @@ class Node {
    
     std::deque<Action> find_sketch_fulfillment_path(const std::vector<bool>& target_sketch, int max_depth) const {
         // Use BFS to find shortest path to sketch-fulfilling node
+        int depth = max_depth;
         std::queue<std::pair<const Node*, std::deque<Action>>> q;
         q.push({this, {}});
         
@@ -445,7 +447,7 @@ class Node {
                 
                 // Check if current node fulfills any sketch
                 int fulfilled_count = 0;
-                if(new_iw_debug) std::cout << "Checking node at depth: " << current->depth_ << std::endl;
+                if( print_debug ) std::cout << "Checking node at depth: " << current->depth_ << std::endl;
                 for (size_t idx = 0; idx < current->post.size(); idx++) {
                     
                     if (target_sketch[idx] && current->post[idx]) {
@@ -460,6 +462,7 @@ class Node {
                 
                 // Return path if any sketch is fulfilled
                 if (fulfilled_count > 0) {
+                    if(new_iw_debug) std::cout <<"this was the max_depth " << max_depth << " searched till " << depth << std::endl;
                     return path;
                 }
                 
@@ -470,8 +473,9 @@ class Node {
                     q.push({child, new_path});
                 }
             }
-            max_depth--;
+            depth--;
         }
+        if(new_iw_debug) std::cout <<"this was the max_depth" << max_depth << " searched till" << depth << std::endl;
         return {}; // No path found
     }
     
