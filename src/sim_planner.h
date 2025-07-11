@@ -56,7 +56,6 @@ struct SimPlanner : Planner {
     ActionVect action_set_;
     mutable bool printing_sketches_;
     const int lookahead_;
-
     SimPlanner(ALEInterface &sim,
                size_t frameskip,
                bool use_minimal_action_set,
@@ -1222,7 +1221,8 @@ struct SimPlanner : Planner {
         
     // Updated item detection functions (FIXED TYPO IN chalice_dist)
     int ykey_dist(const std::vector<pixel_t>& screen_pixels) const {
-        return get_item_distance( "yellow_key", screen_pixels); 
+        int dist = get_item_distance("yellow_key", screen_pixels);
+        return dist;
     }
     int ysword_dist(const std::vector<pixel_t>& screen_pixels) const {
         return get_item_distance( "yellow_sword", screen_pixels); 
@@ -1543,10 +1543,9 @@ struct SimPlanner : Planner {
             std::cout << "Sketches post: ";
             bool key = planner.ykey(post,pre);
                 int curr_dist = ykey_dist(post); 
-                int prev_dist = ykey_dist(pre);
+                int prev_dist = ykey_dist(prevs);
                 int D = planner.calculate_distance_from_goal(post);
-                bool acquiring_key = (curr_dist+50 <= prev_dist && curr_dist >= 0 && prev_dist >= 0);
-                std::cout << "D: " << D << " | ykey: " << key << " | acquiring_key: " << acquiring_key << " post" <<std::endl;
+                std::cout << "D: " << D << " | ykey: " << key << " | curr_dist: " << curr_dist << " | prevs_dist: " << prev_dist << std::endl;
                 std::cout << "Sketches post: ";
                 for (const auto& sketch : sketches_post) {
                     std::cout << sketch << " ";
@@ -1622,12 +1621,13 @@ struct SimPlanner : Planner {
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
                 bool key = planner.ykey(curr,prev);
-                int curr_dist = ykey_dist(curr); 
+                /*int curr_dist = ykey_dist(curr); 
                 int prev_dist = ykey_dist(prev);
-                if(prev_dist-curr_dist > 40 && impotant_debug && prev_dist >= 0 && curr_dist >= 0 ) std::cout << "ykey_dist: " << curr_dist << " (prev: " << prev_dist << ")" << std::endl;
-               
+                if(prev_dist-curr_dist > 40 && impotant_debug && prev_dist >= 0 && curr_dist >= 0 ) std::cout << "ykey_dist: " << curr_dist << " (prev: " << prev_dist << ")" << std::endl;*/
+                int curr_dist = planner.ykey_dist(curr);
+                int prev_dist = ykey_dist(prevs);
                 int D = planner.calculate_distance_from_goal(curr);
-                bool acquiring_key = key || (curr_dist+50 <= prev_dist && curr_dist >= 0 && prev_dist >= 0);
+                bool acquiring_key = key  || (curr_dist+40 <= prev_dist && curr_dist >= 0 && prev_dist >= 0);
                 bool goal_achieved =  acquiring_key && D==1;
                 if(printing_sketches_){
                 std::cout << "SKETCH 0 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
