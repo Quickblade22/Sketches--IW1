@@ -1259,9 +1259,11 @@ struct SimPlanner : Planner {
         return dist;
     }
     // OPTIMIZED ITEM DETECTION WITH CLOSEST ITEM CHECK
-    bool ykey(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image) const {
+    bool ykey(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image, bool printing = false) const {
         auto cube_pos = highlight_cube(screen_pixels, prev_image);
-        bool detected = detect_ykey_touching_cube(screen_pixels, cube_pos, "yellow_key");
+        
+        bool detected = detect_ykey_touching_cube(screen_pixels, cube_pos, "yellow_key", printing);
+        if(printing) std::cout <<"detect_ykey_printing: " <<detected;
         if(printing_debug){
             if (detected ){  std::cout << "detected ykey touching and dist between cube and key is " << ykey_dist(screen_pixels)<< std::endl; 
                 /* std::cout << "Screen: " << std::endl; 
@@ -1274,7 +1276,7 @@ struct SimPlanner : Planner {
             }  
             else std::cout <<"detected no ykey and dist between cube and key is " << ykey_dist(screen_pixels)<< std::endl; 
         }
-         if(printing_debug_adventure and detected != 0) std::cout << "detect_ykey_printing: " << detected << std::endl;
+         if(printing_debug_adventure && detected != 0) std::cout << "detect_ykey_printing: " << detected << std::endl;
             return detected;
         
     }
@@ -1330,7 +1332,7 @@ struct SimPlanner : Planner {
     }
         
 // Main detection function
-    bool detect_ykey_touching_cube(const std::vector<pixel_t>& screen_pixels, const std::pair<int, int>& cube_pos, std::string type ) const {
+    bool detect_ykey_touching_cube(const std::vector<pixel_t>& screen_pixels, const std::pair<int, int>& cube_pos, std::string type, bool printing = false) const {
         if (cube_pos.first == -1 || cube_pos.second == -1) {
             if(printing_debug) std::cout << "No cube found" << std::endl;
             return false; // No cube found
@@ -1342,7 +1344,7 @@ struct SimPlanner : Planner {
         if (type == "yellow_sword") to_check = yswrt;
         else if (type == "black_key") to_check = bkeyt;
         else if (type == "chalice") to_check = chalicet; 
-        if( printing_debug ) std::cout<< std::endl << (to_check ?  "already touched" : "not touched ") << std::endl ; 
+        if( printing_debug|| printing ) std::cout<< std::endl << (to_check ?  "already touched" : "not touched ") << std::endl ; 
        
         if (to_check) {
             auto items = detect_items_around_cube(screen_pixels, cube_pos);
@@ -1352,7 +1354,7 @@ struct SimPlanner : Planner {
                     else if (type == "black_key")  bkeyt = true ;
                     else if (type == "chalice") chalicet = true; 
                     else ykeyt = true; 
-                     if (printing_debug) std::cout<< "found cube carrying " << type << std::endl;
+                     if (printing_debug ||printing) std::cout<< "found cube carrying " << type << std::endl;
                     return true;
              
                 }
@@ -1366,23 +1368,23 @@ struct SimPlanner : Planner {
                 found = true;
                 int key_x = item.second.first;
                 int key_y = item.second.second;
-                int cube_center_x = cube_x + adventure_cube_width / 2;
-                int cube_center_y = cube_y + adventure_cube_height / 2;
+                int cube_center_x = cube_x ; //+ adventure_cube_width / 2
+                int cube_center_y = cube_y ; //+ adventure_cube_height / 2
+                 if ( printing_debug||printing ) std::cout<< "found one " << type << " at" <<key_x << " " << key_y  << " cube at" << cube_x << " " << cube_y << " cubecenter at" << key_x+adventure_cube_width/2 << " " << key_y+adventure_cube_height/2 << std::endl;
                 if(manhattan_dist(cube_center_x, cube_center_y, key_x, key_y) >= 5) { 
                  // Reset item state if far away
-                if ( printing_debug ) std::cout<< "found one faraway  " << type  << " with dist" << manhattan_dist(cube_center_x, cube_center_y, key_x, key_y) << std::endl;
                 reset_item_state();
                 return false; 
                 }
                 
             }
         }
-        if(printing_debug && !found) std::cout<< " item not found in items" << std::endl;
+        if((printing_debug && !found)|| printing) std::cout<< " item not found in items" << std::endl;
         // If not found in items, search around cube
         // Define search area (expanded by 10 pixels)
        auto clusters = form_clusters_around_the_cube(screen_pixels, cube_pos);
         auto regions = regions_for_cube(screen_pixels);
-        if (printing_debug)std::cout << " Clusters found: " << clusters.size() << std::endl; 
+        if (printing_debug || printing)std::cout << " Clusters found: " << clusters.size() << std::endl; 
         auto cube_boundary = get_cube_boundary(cube_pos);
         std::vector<std::set<std::pair<int, int>>> filtered_clusters;
         for (const auto& cluster : clusters) {
@@ -1416,7 +1418,7 @@ struct SimPlanner : Planner {
                         if(i % SCREEN_WIDTH == 0 && i != 0) std::cout << std::endl;
                     }
                 }
-                 if ( impotant_debug ) std::cout << " founnd ykeyt 1419" << std::endl;
+                 if ( printing_debug|| printing ) std::cout << " founnd ykeyt 1419" << std::endl;
                     count ++;
 
                 ykeyt = true;
@@ -1447,7 +1449,7 @@ struct SimPlanner : Planner {
                 return true; 
             }
         }
-        if (printing_debug) std::cout << " found nothing " << std::endl; 
+        if (printing_debug||printing) std::cout << " found nothing " << std::endl; 
         reset_item_state();
         return false;
     }

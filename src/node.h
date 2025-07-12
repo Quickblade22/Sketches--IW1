@@ -390,9 +390,9 @@ class Node {
     // Builds best branch based on sketch potential
     int best_sketch_branch(std::deque<Action>& branch, const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int priority = 0, bool ykeyt = 0, bool bkeyt = 0, bool yswrt = 0, bool chalicet = 0,int action_nr=0) const {
         // Try to find shortest path to sketch fulfillment
-    if (new_iw_debug) std::cout << "Best_sketch_branch called with depth: " << lookahead_depth << std::endl;
+    if (debug) std::cout << "Best_sketch_branch called with depth: " << lookahead_depth << std::endl;
     auto branchs = find_sketch_fulfillment_path(target_sketch, lookahead_depth);
-    if(new_iw_debug) std::cout << "found a path" << branchs.size() << std::endl;
+    if(new_iw_debug) std::cout << "found a path "<< branchs.size() << std::endl;
     if (!branchs.empty()) {
         branch = branchs;
         if (new_iw_debug) {
@@ -413,12 +413,12 @@ class Node {
             bool local_bkey = bkeyt;
             bool local_yswrt = yswrt;
             bool local_chalicet = chalicet;
-            if(print_debug) logging::Logger::Info << logging::Logger::green() << "Best_sketch_brand called with depth: " << lookahead_depth << std::endl;
-            std::cout << "ykeyt: " << ykeyt << " bkeyt: " << bkeyt << " yswrt: " << yswrt << " chalicet: " << chalicet << std::endl;
+            if(new_iw_debug) logging::Logger::Info << logging::Logger::green() << "Best_sketch_brand called with depth: " << lookahead_depth << std::endl;
+            if(debug) std::cout << "ykeyt: " << ykeyt << " bkeyt: " << bkeyt << " yswrt: " << yswrt << " chalicet: " << chalicet << std::endl;
             Node* best_child = select_child_by_sketch_potential(target_sketch, lookahead_depth, discount,priority,local_ykey,local_bkey,local_yswrt,local_chalicet);
             
             branch.push_back(best_child->action_);
-            if(debug) std::cout << std::endl << "Best child action_nr: " << action_nr << " action:" << best_child->action_  << std::endl;
+            if(new_iw_debug) std::cout << std::endl << "Best child action_nr: " << action_nr << " action:" << best_child->action_  << std::endl;
             if(best_child->action_ == 1) {
                 if(print_debug) logging::Logger::Info << logging::Logger::green() << "Found FIRE action in best child" << std::endl;
                 return 1; // Found FIRE action

@@ -32,6 +32,7 @@ struct BfsIW : SimPlanner {
     mutable bool random_decision_;
     int game; 
     mutable std::deque<Action> fulfillment_branch_;
+    mutable  Node *best_node; 
 
     BfsIW(ALEInterface &sim,
           size_t frameskip,
@@ -117,7 +118,8 @@ struct BfsIW : SimPlanner {
         // reset stats and start timer
         reset_stats();
         float start_time = Utils::read_time_in_seconds();
-
+        float debug_time = 0.0f;
+        float debug_time_stop = 0.0f;                        
         // novelty table
         std::map<int, std::vector<int> > novelty_table_map;
 
@@ -199,22 +201,50 @@ struct BfsIW : SimPlanner {
             }
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
             //root->value_ != 0
+            
             if( pres != 0 ) {
-               
-
                 if(transition_printing_debug)   std::cout << "sketches exploitation with depth lookahead" << std::endl;
                 if(printing_debug) logging::Logger::Info << logging::Logger::green() << "exploitation with depth lookahead" << std::endl;
                 // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
                  //trial using fulfillment branch
-                 if(transition_printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
+                 if(printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
                  if(!fulfillment_branch_.empty()) {
-                    if(transition_printing_debug) std::cout << "fulfillment branch is not empty, using it" << std::endl;
+                    if(printing_debug) std::cout << "fulfillment branch is not empty, using it" << std::endl;
                     if(transition_printing_debug) {
                         std::cout << "Action in fulfillment branch: "; 
                         for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
                         std::cout  << std::endl;
                     }
+                    
                     branch = fulfillment_branch_;
+                     if(transition_printing_debug) {
+                            debug_time = Utils::read_time_in_seconds();
+                            
+                            auto finding_node = fulfillment_branch_; 
+                            bool temp = ykey(best_node->screen_pixels_, best_node->parent_->screen_pixels_, true);
+                            std::cout << " ykey found: " << temp << std::endl;
+                            std::cout << "Screen pixels: ";
+                            for(int i= 0; i < best_node->screen_pixels_.size(); i++) {
+                                std::cout << static_cast<int>(best_node->screen_pixels_[i]) << " ";
+                                if(i % SCREEN_WIDTH == 0 && i != 0) std::cout << std::endl;
+                            }
+                            /*std::vector<bool> temporary;
+                            std::cout << std::endl;
+                            if(node->parent_ != nullptr && !node->parent_->screen_pixels_.empty()) {
+                                    //std::cout << "father present" << std::endl;
+                                    temporary = check_sketches_preconditions(node->parent_->screen_pixels_, node->screen_pixels_, *this,1);
+                                    std::vector<pixel_t> typical = node->parent_->screen_pixels_;
+                                    if(node->grandfather != nullptr && !node->grandfather->screen_pixels_.empty()) {
+                                        typical = node->grandfather->screen_pixels_;
+                                         //std::cout << "grandfather present" << std::endl;
+                                    }
+                                    temporary = check_sketches_goals(node->parent_->screen_pixels_, node->screen_pixels_, typical, *this,1);
+                            } else {
+                                   temporary = check_sketches_preconditions(node->screen_pixels_, node->screen_pixels_, *this,1);
+                                    temporary = check_sketches_goals(node->screen_pixels_, node->screen_pixels_, node->screen_pixels_, *this,1);
+                            }*/
+                        }
+                        debug_time_stop = Utils::read_time_in_seconds() - debug_time;
                     for(const auto& act:branch) {
                         if(act == 1) {
                             reset_item_state(); // Reset item states if the first action is 1
@@ -259,7 +289,7 @@ struct BfsIW : SimPlanner {
         }
         
         // stop timer and print stats
-        total_time_ = Utils::read_time_in_seconds() - start_time;
+        total_time_ = Utils::read_time_in_seconds() - start_time + debug_time_stop;
         print_stats(logging::Logger::Stats, *root, novelty_table_map);
 
         // return root node
@@ -319,7 +349,7 @@ struct BfsIW : SimPlanner {
             }
             //trial setting the fulfillment branch
 
-            if( transition_printing_debug && !fulfillment_branch_.empty()  && count == 0) {
+            if( printing_debug && !fulfillment_branch_.empty()  && count == 0) {
                 std::cout << "fulfillment not empty" << std::endl;
                 count ++;
             }
@@ -329,30 +359,13 @@ struct BfsIW : SimPlanner {
                         // Reconstruct branch from root to this node
                         std::deque<Action> temp_branch;
                         Node* temp = node;
+                        best_node = node;
                         while (temp != root) {
                             temp_branch.push_front(temp->action_);
                             temp = temp->parent_;
                         }
                         fulfillment_branch_ = temp_branch;
-                        if(transition_printing_debugs) {
-                            std::cout << "Setting fulfillment branch: ";
-                            for(const auto& act: fulfillment_branch_) std::cout << act << " ";
-                             std::vector<bool> temporary;
-                            std::cout << std::endl;
-                            if(node->parent_ != nullptr && !node->parent_->screen_pixels_.empty()) {
-                                    std::cout << "father present" << std::endl;
-                                    temporary = check_sketches_preconditions(node->parent_->screen_pixels_, node->screen_pixels_, *this,1);
-                                    std::vector<pixel_t> typical = node->parent_->screen_pixels_;
-                                    if(node->grandfather != nullptr && !node->grandfather->screen_pixels_.empty()) {
-                                        typical = node->grandfather->screen_pixels_;
-                                         std::cout << "grandfather present" << std::endl;
-                                    }
-                                    temporary = check_sketches_goals(node->parent_->screen_pixels_, node->screen_pixels_, typical, *this,1);
-                            } else {
-                                   temporary = check_sketches_preconditions(node->screen_pixels_, node->screen_pixels_, *this,1);
-                                    temporary = check_sketches_goals(node->screen_pixels_, node->screen_pixels_, node->screen_pixels_, *this,1);
-                            }
-                        }
+                       
 
                         break;
                     }
