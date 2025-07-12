@@ -1626,10 +1626,10 @@ struct SimPlanner : Planner {
                 /*int curr_dist = ykey_dist(curr); 
                 int prev_dist = ykey_dist(prev);
                 if(prev_dist-curr_dist > 40 && impotant_debug && prev_dist >= 0 && curr_dist >= 0 ) std::cout << "ykey_dist: " << curr_dist << " (prev: " << prev_dist << ")" << std::endl;*/
-                int curr_dist = planner.ykey_dist(curr);
-                int prev_dist = ykey_dist(prevs);
+                //int curr_dist = planner.ykey_dist(curr);
+                //int prev_dist = ykey_dist(prevs);
                 int D = planner.calculate_distance_from_goal(curr);
-                bool acquiring_key = key  || (curr_dist+40 <= prev_dist && curr_dist >= 0 && prev_dist >= 0);
+                bool acquiring_key = key ; // || (curr_dist+40 <= prev_dist && curr_dist >= 0 && prev_dist >= 0)
                 bool goal_achieved =  acquiring_key && D==1;
                 if(printing_sketches_){
                 std::cout << "SKETCH 0 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")

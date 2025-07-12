@@ -223,11 +223,11 @@ struct BfsIW : SimPlanner {
                             auto finding_node = fulfillment_branch_; 
                             bool temp = ykey(best_node->screen_pixels_, best_node->parent_->screen_pixels_, true);
                             std::cout << " ykey found: " << temp << std::endl;
-                            std::cout << "Screen pixels: ";
-                            for(int i= 0; i < best_node->screen_pixels_.size(); i++) {
+                                /* std::cout << "Screen pixels: ";
+                       for(int i= 0; i < best_node->screen_pixels_.size(); i++) {
                                 std::cout << static_cast<int>(best_node->screen_pixels_[i]) << " ";
                                 if(i % SCREEN_WIDTH == 0 && i != 0) std::cout << std::endl;
-                            }
+                            }*/
                             /*std::vector<bool> temporary;
                             std::cout << std::endl;
                             if(node->parent_ != nullptr && !node->parent_->screen_pixels_.empty()) {
