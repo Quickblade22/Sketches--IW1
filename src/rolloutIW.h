@@ -199,19 +199,12 @@
                 //logging::Logger::Info << logging::Logger::green() << "checking for the sketches 196" << std::endl;
                 if(root->parent_->screen_pixels_.size() > 0)  root->pre = check_sketches_preconditions(root->parent_->screen_pixels_,root->screen_pixels_, *this);
                 else root->pre = check_sketches_preconditions(root->screen_pixels_,root->screen_pixels_, *this);
-                //logging::Logger::Info << logging::Logger::green() << "checking for the sketches done 199" << std::endl;
-                //std::cout << "checking for the sketches done 199" << std::endl;
-                //bool any_sketch_applies = std::any_of(root->pre.begin(), root->pre.end(), [](bool b) { return b; });
                 if( root->value_ != 0 ) {
                         logging::Logger::Info << logging::Logger::green() << "exploitation with depth lookahead" << std::endl;
                         // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
                         //const int lookahead_depth = lookadhead_; // Adjust this value as needed
-                        int actions = root->best_sketch_branch(branch, root->pre, lookadhead_, discount_); 
-                        if (actions ==1) reset_item_state();
-                         /*if ((!branch.empty() && branch.front() == 1)) {
-                                reset_item_state(); // Reset item states if the first action is 1
-                                std::cout << "Resetting item states due to action 1" << std::endl;
-                        }*/
+                        root->best_sketch_branch(branch, root->pre, lookadhead_, discount_); 
+                       
                         // Fallback if no branch was found (shouldn't happen)
                         if (branch.empty()) {
                             logging::Logger::Info << logging::Logger::green() << "fallback to original behavior " << std::endl;

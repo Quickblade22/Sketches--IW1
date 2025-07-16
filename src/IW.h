@@ -227,8 +227,7 @@ public:
             // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
 
             const int lookahead_depth = 5; // Adjust this value as needed
-            int actions = root->best_sketch_branch(branch, root->pre, lookahead_depth, discount_); 
-            if( actions == 1) reset_item_state();
+            root->best_sketch_branch(branch, root->pre, lookahead_depth, discount_); 
             /* if ((!branch.empty() && branch.front() == 1)) {
                                 reset_item_state(); // Reset item states if the first action is 1
                                 std::cout << "Resetting item states due to action 1" << std::endl;

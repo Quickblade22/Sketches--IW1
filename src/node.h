@@ -43,6 +43,13 @@ class Node {
     Node *sibling_;                          // right sibling of this node
     Node *parent_;                           // pointer to parent node
     Node *grandfather;                       // pointer to previous parent node
+    mutable bool node_ykeyt ; // ykeyt state for this node
+    mutable bool node_bkeyt ; // bkeyt state for this node
+    mutable bool node_yswrt ; // yswrt state for this node
+    mutable bool node_chalicet ; // chalicet state for this node
+    mutable int node_Last_room_color = 1; // 0 yellow throne, 1 yellow 2 green 3 purpel 4 red 5 light green 6 blue 7 black 8 red 9 pink
+    mutable bool node_ydragon = false;
+    mutable bool node_gdragon = false;
     Node(Node *parent, Action action, size_t depth)
       : visited_(false),
         solved_(false),
@@ -63,6 +70,13 @@ class Node {
         sibling_(nullptr),
         parent_(parent) {
         grandfather = (parent != nullptr) ? parent->parent_ : nullptr;
+        node_bkeyt = (parent != nullptr) ? parent->node_bkeyt: false;
+        node_ykeyt = (parent != nullptr) ? parent->node_ykeyt: false;
+        node_yswrt = (parent != nullptr) ? parent->node_yswrt: false;
+        node_chalicet = (parent != nullptr) ? parent->node_chalicet: false;
+        node_Last_room_color = (parent != nullptr) ? parent->node_Last_room_color: 1;
+        node_ydragon = (parent != nullptr) ? parent->node_ydragon: false;
+        node_gdragon = (parent != nullptr) ? parent->node_gdragon: false;
     }
     ~Node() { delete state_; }
     const bool print_debug = false; // Set to true to print debug information
@@ -83,6 +97,13 @@ class Node {
         first_child_ = new_child;
         ++num_children_;
         new_child->grandfather = this->parent_;
+        new_child->node_ykeyt = this->node_ykeyt;
+        new_child->node_bkeyt = this->node_bkeyt;
+        new_child->node_yswrt = this->node_yswrt;
+        new_child->node_chalicet = this->node_chalicet;
+        new_child->node_Last_room_color = this->node_Last_room_color;
+        new_child->node_ydragon = this->node_ydragon;
+        new_child->node_gdragon = this->node_gdragon;
     }
     void expand(const ActionVect &actions, bool random_shuffle = true) {
         assert((num_children_ == 0) && (first_child_ == nullptr));
@@ -317,17 +338,15 @@ class Node {
         }
         return max_potential;
     }
-    Node* select_child_by_sketch_potential(const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int current_priority,bool ykeyt, bool bkeyt, bool yswrt, bool chalicet) const {
+    Node* select_child_by_sketch_potential(const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int current_priority) const {
         assert(num_children_ > 0 && first_child_ != nullptr);
         
         std::vector<Node*> candidate_children;
-         if (debug) std::cout << "Priority: " << current_priority << " ykeyt: " << ykeyt << " bkeyt: " << bkeyt << " yswrt: " << yswrt << " chalicet: " << chalicet << std::endl;
+         if (debug) std::cout << "Priority: " << current_priority << " ykeyt: " << node_ykeyt << " bkeyt: " << node_bkeyt << " yswrt: " << node_yswrt << " chalicet: " << node_chalicet << std::endl;
         // Filter actions based on sketch type and held items
         bool acquisition_sketch = (current_priority == 4 || current_priority == 10|| current_priority == 14 );
-        
-       
-            
-        if ((ykeyt || bkeyt || yswrt || chalicet) && acquisition_sketch) {
+
+        if ((node_ykeyt || node_bkeyt || node_yswrt || node_chalicet) && acquisition_sketch) {
                 if(debug) std::cout << "Forcing action 1 (FIRE) due to held item" << std::endl;
                 // Holding an item - force FIRE action (1)
                 for (Node *child = first_child_; child != nullptr; child = child->sibling_) {
@@ -363,7 +382,7 @@ class Node {
             
             if (potential > best_potential || 
             (potential == best_potential && qval > best_qvalue)) {
-                if(print_debug) logging::Logger::Info << logging::Logger::green() 
+                if(new_iw_debug) logging::Logger::Info << logging::Logger::green() 
                     << "Better child found: "<< best_potential << " <= " << potential
                     << " reward:"<< best_qvalue << " <= "<< qval<< std::endl;
                 best_potential = potential;
@@ -377,51 +396,45 @@ class Node {
         
         assert(!best_children.empty());
         if (best_children.size() == 1) {
-            if(print_debug) logging::Logger::Info << logging::Logger::green() 
+            if(new_iw_debug) logging::Logger::Info << logging::Logger::green() 
                 << "found one child" << std::endl;
             return best_children[0];
         } else {
-            if(print_debug) logging::Logger::Info << logging::Logger::green() 
+            if(new_iw_debug) logging::Logger::Info << logging::Logger::green() 
                 << "Better child found random: "<< best_potential 
                 << "reward:"<< best_qvalue << std::endl;
             return best_children[lrand48() % best_children.size()];
         }
     }
     // Builds best branch based on sketch potential
-    int best_sketch_branch(std::deque<Action>& branch, const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int priority = 0, bool ykeyt = 0, bool bkeyt = 0, bool yswrt = 0, bool chalicet = 0,int action_nr=0) const {
+    void best_sketch_branch(std::deque<Action>& branch, const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int priority = 0,int action_nr=0) const {
         // Try to find shortest path to sketch fulfillment
     if (debug) std::cout << "Best_sketch_branch called with depth: " << lookahead_depth << std::endl;
-    auto branchs = find_sketch_fulfillment_path(target_sketch, lookahead_depth);
+    auto branchs = find_sketch_fulfillment_path(target_sketch, lookahead_depth); //resets the item states if action 1 is found
     if(new_iw_debug) std::cout << "found a path "<< branchs.size() << std::endl;
     if (!branchs.empty()) {
-        branch = branchs;
+        branch.insert(branch.begin(), branch.end(), branchs.begin()); // Insert current action at the start
         if (new_iw_debug) {
           for(auto i: branch) {
             std::cout << "Action in branch: " << i << std::endl;
           }
         }
-        for(const auto& action : branch) {
-            if(action == 1) {
-                return 1; 
-            }
-        }
-        return 0;
     }
         if(new_iw_debug) std::cout << "falling back to orignal selection of child in Node " << lookahead_depth << std::endl;
         if (num_children_ > 0  ) { //&& lookahead_depth > 0
-            bool local_ykey = ykeyt;
-            bool local_bkey = bkeyt;
-            bool local_yswrt = yswrt;
-            bool local_chalicet = chalicet;
             if(new_iw_debug) logging::Logger::Info << logging::Logger::green() << "Best_sketch_brand called with depth: " << lookahead_depth << std::endl;
-            if(debug) std::cout << "ykeyt: " << ykeyt << " bkeyt: " << bkeyt << " yswrt: " << yswrt << " chalicet: " << chalicet << std::endl;
-            Node* best_child = select_child_by_sketch_potential(target_sketch, lookahead_depth, discount,priority,local_ykey,local_bkey,local_yswrt,local_chalicet);
+            if(new_iw_debug) std::cout << "before " << "ykeyt: " << node_ykeyt << " bkeyt: " << node_bkeyt << " yswrt: " << node_yswrt << " chalicet: " << node_chalicet << std::endl;
+            Node* best_child = select_child_by_sketch_potential(target_sketch, lookahead_depth, discount,priority);
             
             branch.push_back(best_child->action_);
             if(new_iw_debug) std::cout << std::endl << "Best child action_nr: " << action_nr << " action:" << best_child->action_  << std::endl;
+            if(new_iw_debug) std::cout << " after child" << "ykeyt: " << best_child->node_ykeyt << " bkeyt: " << best_child->node_bkeyt << " yswrt: " << best_child->node_yswrt << " chalicet: " << best_child->node_chalicet << std::endl;
             if(best_child->action_ == 1) {
                 if(print_debug) logging::Logger::Info << logging::Logger::green() << "Found FIRE action in best child" << std::endl;
-                return 1; // Found FIRE action
+                best_child->node_ykeyt = false;
+                best_child->node_bkeyt = false;
+                best_child->node_yswrt = false;
+                best_child->node_chalicet = false;
             }
             //calling recursively till leaf node
             /*if(lookahead_depth > 0) {
@@ -430,7 +443,7 @@ class Node {
             //best_child->best_sketch_branch(branch, target_sketch, lookahead_depth-1, discount);
             // If lookahead depth is 0, we don't want to go deeper
         }
-        return 0; // No FIRE action found in branch
+        
     }
    
     std::deque<Action> find_sketch_fulfillment_path(const std::vector<bool>& target_sketch, int max_depth) const {
@@ -463,6 +476,15 @@ class Node {
                 // Return path if any sketch is fulfilled
                 if (fulfilled_count > 0) {
                     if(new_iw_debug) std::cout <<"this was the max_depth " << max_depth << " searched till " << depth << std::endl;
+                    for(auto action : path) {
+                        if(action == 1){
+                            current->node_ykeyt = false;
+                            current->node_bkeyt = false;
+                            current->node_yswrt = false;
+                            current->node_chalicet = false;
+                            if(new_iw_debug) std::cout << "Found FIRE action in path, resetting item states" << std::endl;
+                        }
+                    }
                     return path;
                 }
                 
