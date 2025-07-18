@@ -348,6 +348,7 @@ struct BfsIW : SimPlanner {
             
             // break out of the loop if node found
             if (fulfillment_branch_.empty()) {
+
                 for (size_t i = 0; i < node->post.size(); ++i) {
                     if (root->pre[i] && node->post[i]) {
                         // Reconstruct branch from root to this node
@@ -359,8 +360,7 @@ struct BfsIW : SimPlanner {
                             temp = temp->parent_;
                         }
                         fulfillment_branch_ = temp_branch;
-                       
-
+                        
                         break;
                     }
                 }
@@ -410,6 +410,7 @@ struct BfsIW : SimPlanner {
                 node->expand(node->action_);
             }
             assert((node->num_children_ > 0) && (node->first_child_ != nullptr));
+            
             logging::Logger::Continuation(logging::Logger::Debug) << node->num_children_ << "," << std::flush;
 
             // add children to queue
@@ -418,7 +419,10 @@ struct BfsIW : SimPlanner {
             simulator_budget_reached = (int(simulator_calls_) < simulator_budget_);
             time_budget_reached = (Utils::read_time_in_seconds() - start_time < time_budget_);
             stop = !queue_empty && simulator_budget_reached && time_budget_reached && fulfillment_branch_.empty();
-            if(!stop && printing_debug) {
+            if(printing_debug){
+               std::cout<< "bfs queue ongonging" << std::endl;
+            }
+            if(!stop ) {
                 logging::Logger::Info << "bfs: stopping search, queue empty=" << queue_empty
                                       << ", simulator budget reached=" << simulator_budget_reached
                                       << ", time budget reached=" << time_budget_reached

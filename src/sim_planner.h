@@ -513,6 +513,7 @@ struct SimPlanner : Planner {
                 regions.push_back({{111, 82}, {151, 178}});
                 regions.push_back({{7, 146}, {151, 178}});
                 regions.push_back({{63, 146}, {96, 195}});
+                regions.push_back({{71, 114}, {88, 154}}); //door
         } else if (is_yellow && color_match_at(80, 80, "yellow")) {
                 // Yellow throne room
                 regions.push_back({{7, 18}, {40, 178}});
@@ -520,6 +521,7 @@ struct SimPlanner : Planner {
                 regions.push_back({{7, 82}, {48, 146}});
                 regions.push_back({{111, 82}, {151, 146}});
                 regions.push_back({{7, 147}, {152, 178}});
+                regions.push_back({{71, 114}, {88, 154}}); //door
                 //std::cout<<"yellow_throne_room"<<std::endl; 
         } else if(is_yellow) {
                 // Normal yellow/black room
@@ -1247,17 +1249,40 @@ struct SimPlanner : Planner {
     int dist_to_nav2(const std::vector<pixel_t>& screen_pixels) const {
         auto center = find_cube_without_reference(screen_pixels);
         if (center.first == -1) return -1;
-         int dist = manhattan_dist(center.first,center.second,78,148);
-        if ( abs(center.first-78) == 0) reachednav2 = true;
+        int dist = manhattan_dist(center.first,center.second,80,128);
         return dist;
     }
 
-    int dist_to_nav3(const std::vector<pixel_t>& screen_pixels) const {
-        auto center = get_cube_center(screen_pixels);
-        if (center.first == -1) return -1;
-        int dist = manhattan_dist(center.first,center.second,78,122);
-        if (dist <= 2) reachednav3 = true;
-        return dist;
+    //key stays near door for 3 consecutive frames
+    bool stay_near_door(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& prevs ) const {
+         auto items = detect_items_entire_screen(screen_pixels);
+         bool curr_screen = false; 
+         int x = 0; 
+         int y = 0;
+        for (const auto& item : items) {
+            if (item.first == "yellow_key") {
+                x = item.second.first;
+                y = item.second.second;
+                // Check if in door area: x in [72,89] and y in [146,148]
+                if (x >= 72 && x <= 89 && y >= 146 && y <= 148) {
+                    curr_screen = true; 
+                    break;
+                }
+            }
+        }
+        
+        items = detect_items_entire_screen(prevs);
+        bool prev_screen = false;
+         for (const auto& item : items) {
+            if (item.first == "yellow_key") {
+                if(item.second.first == x && item.second.second == y) {
+                    prev_screen = true; 
+                    break;
+                }
+            }
+        }
+        
+        return curr_screen && prev_screen;
     }
     // OPTIMIZED ITEM DETECTION WITH CLOSEST ITEM CHECK
     bool ykey(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image, bool printing = false) const {
@@ -1334,7 +1359,12 @@ struct SimPlanner : Planner {
     bool door_open(const std::vector<pixel_t>& screen_pixels) const {
      int D = calculate_distance_from_goal(screen_pixels);
      if(D != 1 || D != 7) return false;
-     return is_grey(screen_pixels[146*SCREEN_WIDTH + 80]); // Assuming door_open color is at this pixel 80 123
+     int count = 0; 
+     for(int y = 126; y <= 146; ++y) {
+        count += is_grey(screen_pixels[y*SCREEN_WIDTH + 80]) ? 1 : 0;
+     }
+     if(impotant_debug) std::cout << "door_open count: " << count << std::endl;
+     return count >= 15; // Assuming door_open color is at this pixel 80 123
     }
 // Main detection function
     bool detect_ykey_touching_cube(const std::vector<pixel_t>& screen_pixels, const std::pair<int, int>& cube_pos, std::string type, bool printing = false) const {
@@ -1575,7 +1605,7 @@ struct SimPlanner : Planner {
                 int curr_dist = planner.dist_to_nav2(post);
                 int prev_dist = planner.dist_to_nav2(prevs);
                 int D = planner.calculate_distance_from_goal(post);
-                std::cout << "Current distance to nav2: " << curr_dist << ", Previous distance: " << prev_dist << ", D: " << D << " door_open_function: " << planner.door_open(post) << std::endl;
+                std::cout << "Current distance to nav2: " << curr_dist << ", Previous distance: " << prev_dist << ", D: " << D << " door_open_function: " << planner.door_open(post) <<  " ,stay near " << stay_near_door(post,prevs)  << std::endl;
                 std::cout << "Sketches post: ";
                 for (const auto& sketch : sketches_post) {
                     std::cout << sketch << " ";
@@ -1673,7 +1703,7 @@ struct SimPlanner : Planner {
         // Sketch 1: Navigate to black gate 
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-               
+                if(planner.priority_ != 1) return false;
                 int D = planner.calculate_distance_from_goal(curr);
                 bool key = planner.ykey(curr,prev); 
                 bool door = planner.door_open(curr);
@@ -1689,9 +1719,12 @@ struct SimPlanner : Planner {
                 int curr_dist = planner.dist_to_nav2(curr);
                 int prev_dist = planner.dist_to_nav2(prevs);
                 int D = planner.calculate_distance_from_goal(curr);
-                bool reduce_dist = ((curr_dist+50 <= prev_dist && curr_dist > 0 && prev_dist > 0)|| (curr_dist == 0));
+                //reduce or stay there
+                bool reduce_dist = ((curr_dist+40 <= prev_dist && curr_dist > 0 && prev_dist > 0) );
+                bool door_open = stay_near_door(curr,prevs);
+                //if(curr_dist > 0) door_open = reduce_dist;
                 //bool goal_achieved = (reachednav1 || (curr_dist < prev_dist && curr_dist >= 0 && prev_dist >= 0)) && D ==1 ;
-                bool door_open = (planner.door_open(curr) || reduce_dist);
+              
                 bool goal_achieved = D == 1 && door_open &&  planner.ykey(curr,prev);
                 if(printing_sketches_){
                 std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
@@ -1708,7 +1741,7 @@ struct SimPlanner : Planner {
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
                 bool key = planner.ykey(curr,prev);
                 int D = planner.calculate_distance_from_goal(curr);
-                bool cond = D == 1 && planner.door_open(curr) && key && !planner.yswr(curr);
+                bool cond = D == 1  && key && !planner.yswr(curr);
                 if(printing_sketches_){
                 std::cout << "SKETCH 1 PRE: D=" << D << " | ykey=" << key << " | door_open=" << planner.door_open(curr)
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
