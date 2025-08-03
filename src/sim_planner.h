@@ -387,6 +387,7 @@ struct SimPlanner : Planner {
     const bool printing_debug = false; // Set to true to enable debug printing
     const bool impotant_debug = true;
     const bool printing_debug_adventure = false; // Set to true to enable debug printing for adventure mode
+    mutable Node* current_node = nullptr; // Pointer to the current node being processed
     const std::map<std::string, pixel_t> COLORS = {
         {"yellow", 193},
         {"blue", 85},
@@ -430,6 +431,13 @@ struct SimPlanner : Planner {
         down = y+ adventure_cube_height+1 < SCREEN_HEIGHT && !color_match(COLORS.at(std::string("black")),screen_pixels[(y + adventure_cube_height+1) * SCREEN_WIDTH + x]); 
        }
        return (left || right) && ( up || down); 
+    }
+    bool item_surrounding_grey(const std::vector<pixel_t>& screen_pixels, size_t x, size_t y) const {
+       bool left = (x-5 >= 0) && is_grey(screen_pixels[y * SCREEN_WIDTH + (x - 5)]);
+       bool right = x+ 5 < SCREEN_WIDTH && is_grey(screen_pixels[y * SCREEN_WIDTH + (x + 5)]);
+       bool up =( y-5 >= 0) && is_grey(screen_pixels[(y - 5) * SCREEN_WIDTH + x]);
+       bool down = y+ 5 < SCREEN_HEIGHT && is_grey(screen_pixels[(y + 5) * SCREEN_WIDTH + x]);
+         return (left || right) && ( up || down);
     }
     bool is_key_area(const std::vector<pixel_t>& screen_pixels, int x, int y) const {
     int count = 0;
@@ -505,6 +513,22 @@ struct SimPlanner : Planner {
             size_t idx = static_cast<size_t>(y) * SCREEN_WIDTH + static_cast<size_t>(x);
             return color_match(screen_pixels[idx], COLORS.at(color));
         };
+        // Add entrance areas
+        std::pair<std::pair<int,int>, std::pair<int,int>> entrance_down = {{63, 170}, {96, 195}};
+        std::pair<std::pair<int,int>, std::pair<int,int>> entrance_up = {{63, 1}, {96, 26}};
+        
+        
+        if (is_green || is_light_green || is_red||is_pink) {
+            regions.push_back(entrance_up);
+        }else{
+            regions.push_back(entrance_down);
+        }
+       
+        // Special case for red room when coming from black or pink
+        if (is_red && (Last_room_color == 7 || Last_room_color == 9)) {
+            regions.push_back(entrance_down);
+        }
+
         if(is_black){
             // Black throne room
                 regions.push_back({{7, 18}, {40, 178}});
@@ -624,25 +648,22 @@ struct SimPlanner : Planner {
             regions.push_back({{0, 0}, {160, 210}});
         }
 
-        // Add entrance areas
-        std::pair<std::pair<int,int>, std::pair<int,int>> entrance_down = {{63, 170}, {96, 195}};
-        std::pair<std::pair<int,int>, std::pair<int,int>> entrance_up = {{63, 1}, {96, 26}};
         
-        
-        if (is_green || is_light_green || is_red||is_pink) {
-            regions.push_back(entrance_up);
-        }else{
-            regions.push_back(entrance_down);
-        }
-       
-        // Special case for red room when coming from black or pink
-        if (is_red && (Last_room_color == 7 || Last_room_color == 9)) {
-            regions.push_back(entrance_down);
-        }
 
         return regions;
     }
-    
+    void printing_screen(const std::vector<pixel_t>& screen_pixels) const {
+        
+        std::cout << "Screen Pixels: " << std::endl;
+        for (size_t y = 0; y < SCREEN_HEIGHT; ++y) {
+            for (size_t x = 0; x < SCREEN_WIDTH; ++x) {
+                size_t idx = y * SCREEN_WIDTH + x;
+                std::cout << static_cast<int>(screen_pixels[idx]) << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << "End of Screen Pixels" << std::endl;
+    }
     bool item_surroundin_grey(const std::vector<pixel_t>& screen_pixels, size_t x, size_t y) const {
             bool left = x-5 >= 0 && is_grey(screen_pixels[y * SCREEN_WIDTH + (x -5 )]);
             bool right = x+ 5 < SCREEN_WIDTH && is_grey(screen_pixels[y * SCREEN_WIDTH + (x + 5)]);
@@ -764,6 +785,33 @@ struct SimPlanner : Planner {
         };
     }   
     
+    // Helper function to get cube boundary
+    std::set<std::pair<int, int>> get_cube_boundary(const std::pair<int, int>& cube_pos) const {
+        std::set<std::pair<int, int>> boundary;
+        int x0 = cube_pos.first;
+        int y0 = cube_pos.second;
+
+        // Left boundary
+        for (int y = y0; y < y0 + adventure_cube_height; y++) {
+            if (x0 - 1 >= 0) boundary.insert({x0 - 1, y});
+        }
+        // Right boundary
+        for (int y = y0; y < y0 + adventure_cube_height; y++) {
+            if (x0 + adventure_cube_width < SCREEN_WIDTH) 
+                boundary.insert({x0 + adventure_cube_width, y});
+        }
+        // Top boundary
+        for (int x = x0; x < x0 + adventure_cube_width; x++) {
+            if (y0 - 1 >= 0) boundary.insert({x, y0 - 1});
+        }
+        // Bottom boundary
+        for (int x = x0; x < x0 + adventure_cube_width; x++) {
+            if (y0 + adventure_cube_height < SCREEN_HEIGHT) 
+                boundary.insert({x, y0 + adventure_cube_height});
+        }
+        return boundary;
+    }
+    // Clustering functions
     std::vector<std::set<std::pair<int, int>>> cluster_pixels(const std::set<std::pair<int, int>>& candidates,const std::vector<pixel_t>& screen_pixels) const {
         std::vector<std::set<std::pair<int, int>>> clusters;
         std::set<std::pair<int, int>> visited;
@@ -957,7 +1005,7 @@ struct SimPlanner : Planner {
             std::string item_type;
            if (size >= 26 && size <= 30 && color_match(color, COLORS.at("yellow"))) {
                 item_type = "yellow_key";
-            }else if (size >= 20 && size <= 25 && color_match(color, COLORS.at("yellow"))) {
+            }else if (size >= 19 && size <= 25 && color_match(color, COLORS.at("yellow"))) { //22 px
                 item_type = "yellow_sword";
             }
             else if (size >= 26 && size <= 30 && color_match(color, COLORS.at("black"))) {
@@ -965,9 +1013,9 @@ struct SimPlanner : Planner {
             } else if (size >= 67 && size <= 68) {
                 item_type = "chalice";
             }
-            
-            if (!item_type.empty()) {
-                detected_items.push_back({item_type, {center_x, center_y}});
+
+            if (!item_type.empty() && item_surrounding_grey(screen_pixels, first_pixel.first, first_pixel.second)) {
+                detected_items.push_back({item_type, {first_pixel.first, first_pixel.second}});
             }
         } 
         /* std::cout<<std::endl<<"Detected items entire screen" << std::endl; 
@@ -983,7 +1031,7 @@ struct SimPlanner : Planner {
             return {};
         }
         
-        const int padding = 20;
+        const int padding = 15;
         int x0 = cube_pos.first;
         int y0 = cube_pos.second;
         int x_start = std::max(0, x0 - padding);
@@ -1022,7 +1070,7 @@ struct SimPlanner : Planner {
                     item_type = "black_key";
                 }
             } 
-            else if (size >= 20 && size <= 25 && color_match(color, COLORS.at("yellow"))) {
+            else if (size >= 19 && size <= 25 && color_match(color, COLORS.at("yellow"))) {
                 item_type = "yellow_sword";
             } 
             else if (size >= 67 && size <= 68) {
@@ -1045,9 +1093,8 @@ struct SimPlanner : Planner {
         return items;
     }
     
-    // Dragon detection function
-    void detect_dragons(const std::vector<pixel_t>& screen_pixels, std::string dragon_type) const {
-        auto regions = regions_for_cube(screen_pixels);
+    std::vector<std::set<std::pair<int, int>>> dragon_helper_function(const std::vector<pixel_t>& screen_pixels) const {
+       auto regions = regions_for_cube(screen_pixels);
         //update needed
         auto cube_coords = highlight_cube(screen_pixels,screen_pixels);
         
@@ -1102,6 +1149,11 @@ struct SimPlanner : Planner {
         auto filtered_clusters = clusters; 
         if(printing_debug) std::cout<< "the size of exlcusion points" << exclusion_centroids.size();
         if(!exclusion_centroids.empty())  filtered_clusters = filter_clusters_by_exclusion_points(clusters, exclusion_centroids);
+        return filtered_clusters;
+    }
+    // Dragon detection function
+    void detect_dragons(const std::vector<pixel_t>& screen_pixels, std::string dragon_type) const {
+        auto filtered_clusters = dragon_helper_function(screen_pixels);
         if(printing_debug) std::cout<<"cluster size after filtering" << filtered_clusters.size(); 
         for (const auto& cluster : filtered_clusters) {
             if (cluster.size() < 140 || cluster.size() >= 180) continue; // Dragon size threshold
@@ -1140,6 +1192,24 @@ struct SimPlanner : Planner {
         }
     }
     
+    bool detect_dragons_in_room(const std::vector<pixel_t>& screen_pixels, std::string dragon_type) const {
+       auto filtered_clusters = dragon_helper_function(screen_pixels);
+       //got the filtered clusters
+        for (const auto& cluster : filtered_clusters) {
+            if (cluster.size() < 140 || cluster.size() >= 180) continue; // Dragon size threshold
+            
+            auto first_pixel = *cluster.begin();
+            pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
+            size_t size = cluster.size();
+            //check if dragon alive in room
+            if(size >= 165 && size < 180) {
+                //check if dragon type matches
+                return ((dragon_type == "gdragon" && color_match(color, COLORS.at("gdragon"))) 
+                || (dragon_type == "ydragon" && color_match(color, COLORS.at("ydragon"))));
+            }
+        }
+        return false; // No dragon detected
+    }
     // Dragon state functions
     bool ydragon_killed(const std::vector<pixel_t>& screen_pixels) const {
         if(ydragon) return true; 
@@ -1152,10 +1222,8 @@ struct SimPlanner : Planner {
         detect_dragons(screen_pixels, "gdragon");
         return gdragon;
     }
-    
     // Item distance function (MANHATTAN)
-    int get_item_distance(const std::string& item_type, 
-                          const std::vector<pixel_t>& screen_pixels) const 
+    int get_item_distance(const std::string& item_type, const std::vector<pixel_t>& screen_pixels) const 
     {
         const int MAX_DISTANCE = -1;
         auto cube_coords = find_cube_without_reference(screen_pixels);
@@ -1302,7 +1370,6 @@ struct SimPlanner : Planner {
             }  
             else std::cout <<"detected no ykey and dist between cube and key is " << ykey_dist(screen_pixels)<< std::endl; 
         }
-         if(printing_debug_adventure && detected != 0) std::cout << "detect_ykey_printing: " << detected << std::endl;
             return detected;
         
     }
@@ -1314,11 +1381,12 @@ struct SimPlanner : Planner {
         return detected;
     }
     
-    bool ysword(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image) const {
+    bool ysword(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image, bool printing = false) const {
         auto cube_pos = highlight_cube(screen_pixels, prev_image);
-        bool detected = detect_ykey_touching_cube(screen_pixels, cube_pos, "yellow_sword");
+        bool detected = detect_ykey_touching_cube(screen_pixels, cube_pos, "yellow_sword", printing);
         //std::cout <<"detect_yswr_printing: " << detected; 
-        return detect_ykey_touching_cube(screen_pixels, cube_pos, "yellow_sword");
+        if(printing) std::cout <<"detect_ysword_printing: " <<detected << std::endl;
+        return detected;
     }
     
     bool chalice(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image) const {
@@ -1327,35 +1395,46 @@ struct SimPlanner : Planner {
         if(printing_debug) std::cout <<"detect_chalice_printing: " << detected; 
         return detected;
     }
-
+    // Check if item is in room
     bool ykeyr(const std::vector<pixel_t>& screen_pixels) const {
         auto items = detect_items_entire_screen(screen_pixels); 
         for(auto item : items){
             if(item.first == "yellow_key") return true; 
         }
-        return false; 
+        //picked up yellow sword, so not dettecting it
+        return (current_node != nullptr  && current_node->parent_ != nullptr && current_node->parent_->node_ykeyt == false && ykeyt);
     }
     bool bkeyr(const std::vector<pixel_t>& screen_pixels) const {
-        auto items = detect_items_entire_screen(screen_pixels); 
-        for(auto item : items){
-            if(item.first == "black_key") return true; 
+        auto items = detect_items_entire_screen(screen_pixels);
+        for (auto item : items) {
+            if (item.first == "black_key") return true;
         }
-        return false; 
+        //picked up yellow sword, so not dettecting it
+        return (current_node != nullptr && current_node->parent_ != nullptr && current_node->parent_->node_bkeyt == false && bkeyt);
     }
     bool chalicer(const std::vector<pixel_t>& screen_pixels) const {
-        auto items = detect_items_entire_screen(screen_pixels); 
-        for(auto item : items){
-            if(item.first == "chalice") return true; 
+        auto items = detect_items_entire_screen(screen_pixels);
+        for (auto item : items) {
+            if (item.first == "chalice") return true;
         }
-        return false; 
+        //picked up yellow sword, so not dettecting it
+        return (current_node != nullptr && current_node->parent_ != nullptr && current_node->parent_->node_chalicet == false && chalicet);
     }
     bool yswr(const std::vector<pixel_t>& screen_pixels) const {
-        auto items = detect_items_entire_screen(screen_pixels); 
-        for(auto item : items){
-            if(item.first == "yellow_sword") return true; 
+        auto items = detect_items_entire_screen(screen_pixels);
+        for (auto item : items) {
+            if (item.first == "yellow_sword") return true;
         }
-        return false; 
+        //picked up yellow sword, so not dettecting it
+        return (current_node != nullptr && current_node->parent_ != nullptr && current_node->parent_->node_yswrt == false && yswrt);
     }
+    bool ydragonr(const std::vector<pixel_t>& screen_pixels) const {
+        return detect_dragons_in_room(screen_pixels, "ydragon");
+    }
+    bool gdragonr(const std::vector<pixel_t>& screen_pixels) const {
+        return detect_dragons_in_room(screen_pixels, "gdragon");
+    }
+    
     bool door_open(const std::vector<pixel_t>& screen_pixels) const {
      int D = calculate_distance_from_goal(screen_pixels);
      if(D != 1 || D != 7) return false;
@@ -1366,8 +1445,9 @@ struct SimPlanner : Planner {
      if(impotant_debug) std::cout << "door_open count: " << count << std::endl;
      return count >= 15; // Assuming door_open color is at this pixel 80 123
     }
-// Main detection function
+    // Check if cube touching item or already touched --> carrying item
     bool detect_ykey_touching_cube(const std::vector<pixel_t>& screen_pixels, const std::pair<int, int>& cube_pos, std::string type, bool printing = false) const {
+    
         if (cube_pos.first == -1 || cube_pos.second == -1) {
             if(printing_debug) std::cout << "No cube found" << std::endl;
             return false; // No cube found
@@ -1379,7 +1459,12 @@ struct SimPlanner : Planner {
         if (type == "yellow_sword") to_check = yswrt;
         else if (type == "black_key") to_check = bkeyt;
         else if (type == "chalice") to_check = chalicet; 
-        if( printing_debug|| printing ) std::cout<< std::endl << (to_check ?  "already touched" : "not touched ") << std::endl ; 
+        if(printing ) std::cout<< std::endl << (to_check ?  "already touched" : "not touched ") << std::endl ; 
+        if((printing ||impotant_debug) && current_node == nullptr) std::cout << "current_node is nullptr" << std::endl;
+        if(to_check && current_node != nullptr && current_node->action_ == 1){
+            reset_item_state();
+            return false; 
+        }
        
         if (to_check) {
             auto items = detect_items_around_cube(screen_pixels, cube_pos);
@@ -1398,14 +1483,24 @@ struct SimPlanner : Planner {
         bool found = false;
         // Don't have yellow key yet - check detected items first
         auto items = detect_items_entire_screen(screen_pixels);
+        if(printing_debug || printing) {
+            std::cout << "Checking items in entire screen for type: " << type << std::endl;
+            for (const auto& item : items) {
+            int key_x = item.second.first;
+            int key_y = item.second.second;
+            std::cout<< "found " << item.first << " at " << key_x << " " << key_y  << " cube at " 
+            << cube_x << " " << cube_y << std::endl;
+            }
+        }
+        // check if item is already in items and close to cube ?
         for (const auto& item : items) {
+            int key_x = item.second.first;
+            int key_y = item.second.second;
             if (item.first == type) {
                 found = true;
-                int key_x = item.second.first;
-                int key_y = item.second.second;
                 int cube_center_x = cube_x ; //+ adventure_cube_width / 2
                 int cube_center_y = cube_y ; //+ adventure_cube_height / 2
-                 if ( printing_debug||printing ) std::cout<< "found one " << type << " at" <<key_x << " " << key_y  << " cube at" << cube_x << " " << cube_y << " cubecenter at" << key_x+adventure_cube_width/2 << " " << key_y+adventure_cube_height/2 << std::endl;
+                 
                 if(manhattan_dist(cube_center_x, cube_center_y, key_x, key_y) >= 5) { 
                  // Reset item state if far away
                 if( to_check) reset_item_state();
@@ -1415,14 +1510,15 @@ struct SimPlanner : Planner {
                 
             }
         }
-        if((printing_debug && !found)|| printing) std::cout<< " item not found in items" << std::endl;
+        if((printing_debug && !found)|| printing) std::cout<< " searching around cube" << std::endl;
         // If not found in items, search around cube
         // Define search area (expanded by 10 pixels)
        auto clusters = form_clusters_around_the_cube(screen_pixels, cube_pos);
         auto regions = regions_for_cube(screen_pixels);
-        if (printing_debug || printing)std::cout << " Clusters found: " << clusters.size() << std::endl; 
+        if (printing_debug )std::cout << " Clusters found: " << clusters.size() << std::endl; 
         auto cube_boundary = get_cube_boundary(cube_pos);
         std::vector<std::set<std::pair<int, int>>> filtered_clusters;
+        
         for (const auto& cluster : clusters) {
             // Count adjacent pixels to cube
             int adjacent_count = 0;
@@ -1435,11 +1531,20 @@ struct SimPlanner : Planner {
             if (adjacent_count >= 2) filtered_clusters.push_back(cluster);
         }
         // Validate clusters
-
+        if(printing){
+            std::cout << "Cube position: (" << cube_x << ", " << cube_y << ")" << std::endl;
+            std::cout << " Clusters found: " << clusters.size() <<  " filtered clusters: " << filtered_clusters.size() << std::endl;
+            for(const auto& cluster: clusters) {
+                auto first_pixel = *cluster.begin();
+                pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
+                bool in_filtered = std::find(filtered_clusters.begin(), filtered_clusters.end(), cluster) != filtered_clusters.end();
+                std:: cout << "cluster size: " << cluster.size() << " with color: " << static_cast<int>( color) << " in filtered cluster included " << in_filtered <<  std::endl;
+            } 
+        }
         for (const auto& cluster : filtered_clusters) {
-            if (!cluster_in_regions(cluster, regions)) {
+            /*if (!cluster_in_regions(cluster, regions)) {
                 continue;
-            }
+            }*/
             
             size_t size = cluster.size();
             auto first_pixel = *cluster.begin();
@@ -1448,15 +1553,8 @@ struct SimPlanner : Planner {
             // Check if it's a valid yellow key
             if (size >= 26 && size <= 30 && color_match(color, COLORS.at("yellow"))  && type == "yellow_key")  // Room color check
             {
-                 if (printing_debug && count == 0){
-                    for(int i= 0; i < screen_pixels.size(); i++){
-                        std::cout << static_cast<int>(screen_pixels[i]) << " ";
-                        if(i % SCREEN_WIDTH == 0 && i != 0) std::cout << std::endl;
-                    }
-                }
                  if ( printing_debug|| printing ) std::cout << " founnd ykeyt 1419" << std::endl;
-                    count ++;
-
+                count ++;
                 ykeyt = true;
                 bkeyt = false;
                 yswrt = false;
@@ -1469,7 +1567,7 @@ struct SimPlanner : Planner {
                 chalicet = false;
                 if (printing_debug) std::cout << " founnd bkeyt " << std::endl;
                 return true; 
-            }else if (size >= 20 && size <= 25 && color_match(color, COLORS.at("yellow")) && type == "yellow_sword") {
+            }else if (size >= 19 && size <= 25 && color_match(color, COLORS.at("yellow")) && type == "yellow_sword") {
                 yswrt = true; 
                 ykeyt = false;
                 bkeyt = false;
@@ -1485,6 +1583,7 @@ struct SimPlanner : Planner {
                 return true; 
             }
         }
+        
         if (printing_debug||printing) std::cout << " found nothing " << std::endl; 
         
         return false;
@@ -1515,16 +1614,18 @@ struct SimPlanner : Planner {
             }
         }
         
-        return cluster_pixels_using_seed(touching_pixels, screen_pixels);
+        return cluster_pixels(touching_pixels, screen_pixels);
     }
     
+    //state management functions regarding the nodes 
     void reset_item_state() const{
         ykeyt = false;
         bkeyt = false;
         yswrt = false;
         chalicet = false;
     }
-    void set_item_state(const Node* node) const {
+    void set_item_state(Node* node, bool printing = false) const {
+        current_node = node;
         ykeyt = node->node_ykeyt;
         bkeyt = node->node_bkeyt;
         yswrt = node->node_yswrt;
@@ -1532,8 +1633,9 @@ struct SimPlanner : Planner {
         ydragon = node->node_ydragon;
         gdragon = node->node_gdragon;
         Last_room_color = node->node_Last_room_color;
+        //if(printing) std::cout << "current node action: " << current_node->action_ << " && the best_node action is" << node->action_ << std::endl;
     }
-    void setting_node_state(const Node* node) const {
+    void setting_node_state(Node* node) const {
         node->node_ykeyt = ykeyt;
         node->node_bkeyt = bkeyt;
         node->node_yswrt = yswrt;
@@ -1541,38 +1643,13 @@ struct SimPlanner : Planner {
         ydragon = node->node_ydragon;
         gdragon = node->node_gdragon;
         Last_room_color = node->node_Last_room_color;
-
+        
     }
-    // Helper function to get cube boundary
-    std::set<std::pair<int, int>> get_cube_boundary(const std::pair<int, int>& cube_pos) const {
-        std::set<std::pair<int, int>> boundary;
-        int x0 = cube_pos.first;
-        int y0 = cube_pos.second;
-
-        // Left boundary
-        for (int y = y0; y < y0 + adventure_cube_height; y++) {
-            if (x0 - 1 >= 0) boundary.insert({x0 - 1, y});
-        }
-        // Right boundary
-        for (int y = y0; y < y0 + adventure_cube_height; y++) {
-            if (x0 + adventure_cube_width < SCREEN_WIDTH) 
-                boundary.insert({x0 + adventure_cube_width, y});
-        }
-        // Top boundary
-        for (int x = x0; x < x0 + adventure_cube_width; x++) {
-            if (y0 - 1 >= 0) boundary.insert({x, y0 - 1});
-        }
-        // Bottom boundary
-        for (int x = x0; x < x0 + adventure_cube_width; x++) {
-            if (y0 + adventure_cube_height < SCREEN_HEIGHT) 
-                boundary.insert({x, y0 + adventure_cube_height});
-        }
-
-        return boundary;
-    }
-    std::vector<bool> check_sketches_preconditions (const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const SimPlanner& planner, const Node* node = nullptr, bool printing = false) const{
+    
+    
+    std::vector<bool> check_sketches_preconditions (const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const SimPlanner& planner, Node* node = nullptr, bool printing = false) const{
             std::vector<bool> sketches_pre(planner.sketches_.size(), false);
-            if( node != nullptr) set_item_state(node);
+            if( node != nullptr) set_item_state(node, printing);
             if(printing) printing_sketches_ = true;
             for (size_t i = 0; i < sketches_.size(); ++i) {  
                     sketches_pre[i] = planner.sketches_[i].precondition(planner, pre, post);
@@ -1594,72 +1671,24 @@ struct SimPlanner : Planner {
             if( node != nullptr) setting_node_state(node);
             return sketches_pre;
     }
-    std::vector<bool> check_sketches_goals(const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const std::vector<pixel_t>& prevs, const SimPlanner& planner,  const Node* node = nullptr, bool printing = false) const {
+    std::vector<bool> check_sketches_goals(const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const std::vector<pixel_t>& prevs, const SimPlanner& planner,   Node* node = nullptr, bool printing = false) const {
         std::vector<bool> sketches_post(sketches_.size(), false);
         // Check current priority sketch
-        if( node != nullptr) set_item_state(node);
+        if( node != nullptr) set_item_state(node, printing);
+        if (printing) printing_sketches_ = true;
         for(size_t i = 0; i < planner.sketches_.size(); ++i) {
             sketches_post[i] = planner.sketches_[i].goal(planner, pre, post, prevs);
         }
         if(printing) {
-                int curr_dist = planner.dist_to_nav2(post);
-                int prev_dist = planner.dist_to_nav2(prevs);
-                int D = planner.calculate_distance_from_goal(post);
-                std::cout << "Current distance to nav2: " << curr_dist << ", Previous distance: " << prev_dist << ", D: " << D << " door_open_function: " << planner.door_open(post) <<  " ,stay near " << stay_near_door(post,prevs)  << std::endl;
                 std::cout << "Sketches post: ";
                 for (const auto& sketch : sketches_post) {
                     std::cout << sketch << " ";
                 }
                 std::cout << std::endl;
         }
-         if( node != nullptr) setting_node_state(node);
+        if( node != nullptr) setting_node_state(node);
+        printing_sketches_ = false;
         return sketches_post;
-        /*
-        if(planner.priority_ < sketches_.size()) {
-            bool goal_achieved = sketches_[planner.priority_].goal(planner, pre, post, prevs);
-            sketches_post[planner.priority_] = goal_achieved;
-            
-        }
-            if(goal_achieved) {
-                // Advance priority if goal achieved
-                //std::cout << "goal achieved " << std::endl; 
-                int D = planner.calculate_distance_from_goal(post); 
-                int prior = planner.priority_; 
-                bool local_ykey =  ykey(post,pre);
-                if(printing_debug) std::cout<<std::endl << "Current priority: " << planner.priority_ << " D==" << D
-                <<" ykey" << local_ykey << " reachednav1 " << reachednav1 << " reachednav2 " << reachednav2 << std::endl;
-                // Check conditions to advance priority
-                if (planner.priority_ == 0 && local_ykey  )   const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 1 &&  !local_ykey) {const_cast<SimPlanner&>(planner).priority_ = 0; reachednav1 = false; } 
-                else if (planner.priority_ == 1 && local_ykey && reachednav1 )const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 2 && reachednav2 && local_ykey ) const_cast<SimPlanner&>(planner).priority_++;
-                else if ((planner.priority_ == 3 || planner.priority_ == 15)&& D == 0 ) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 4 && ysword(post,pre) ) const_cast<SimPlanner&>(planner).priority_++;
-                else if ((planner.priority_ == 5 || planner.priority_ == 12) && D==5 ) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 6 && ydragon) const_cast<SimPlanner&>(planner).priority_++;
-                else if ((planner.priority_ == 7 || planner.priority_ == 11) && D==2 ) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 8 && D==4 ) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 9 && gdragon) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 10 && bkey(post,pre) ) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 13 && D == 9) const_cast<SimPlanner&>(planner).priority_++;
-                else if (planner.priority_ == 14 && chalice(post,pre) ) const_cast<SimPlanner&>(planner).priority_++;
-                if (prior != planner.priority_) {
-                    if(impotant_debug) std::cout << "Advanced priority to: " << planner.priority_ << std::endl;
-                    //std::cout<< "screeN::" << std::endl;
-                    /*for(int i = 0; i < post.size(); i++){
-                        std::cout << static_cast<int>( post[i]) << " ";
-                        if(i % SCREEN_WIDTH == 0 && i != 0) std::cout << std::endl;
-                    }
-                    std::cout<<std::endl; 
-                    //std::cout<< "screeN_ended" << std::endl;
-                }
-                // Mark all lower priorities as true (including the one we just completed)
-                for(int i = 0; i < planner.priority_; i++) {
-                    sketches_post[i] = true;
-                }
-            }*/
-        
-       
     }
     void initalize_sketches_adventure() {
         sketches_.clear();
@@ -1668,28 +1697,24 @@ struct SimPlanner : Planner {
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
                 //int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.ykey(curr,prev); 
+                if(printing_sketches_) std::cout << "SKETCH 0 PRE Computation " << std::endl;
+                bool key = planner.ykey(curr,prev,printing_sketches_); 
                 bool room = planner.ykeyr(curr);
-                bool cond =  (!key && room )  ;  //D == 1 &&
+                bool sword_room = planner.yswr(curr);
+                bool cond =  (!key && room && !sword_room )  ;  //D == 1 &&
                 if(printing_sketches_){
                 std::cout<< std::endl; 
-                std::cout << "SKETCH 0 PRE: D=" //<< D 
+                std::cout << "SKETCH 0 PRE:" //<< D 
                         << " | !ykey=" << !key
-                        << " | ykeyr=" << room << " | reachednav1=" << !reachednav1
+                        << " | ykeyr=" << room << " | !sword_room " << !sword_room
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                bool key = planner.ykey(curr,prev);
-                /*int curr_dist = ykey_dist(curr); 
-                int prev_dist = ykey_dist(prev);
-                if(prev_dist-curr_dist > 40 && impotant_debug && prev_dist >= 0 && curr_dist >= 0 ) std::cout << "ykey_dist: " << curr_dist << " (prev: " << prev_dist << ")" << std::endl;*/
-                //int curr_dist = planner.ykey_dist(curr);
-                //int prev_dist = ykey_dist(prevs);
-                //int D = planner.calculate_distance_from_goal(curr);
-                bool acquiring_key = key ; // || (curr_dist+40 <= prev_dist && curr_dist >= 0 && prev_dist >= 0)
-                bool goal_achieved =  acquiring_key; //&& D==1;
+                if(printing_sketches_) std::cout << "SKETCH 0 GOAL Computation " << std::endl;
+                bool key = planner.ykey(curr,prev, printing_sketches_);
+                bool goal_achieved =  key; //&& D==1;
                 if(printing_sketches_){
                 std::cout << "SKETCH 0 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
                         << " | ykey=" << key 
@@ -1701,448 +1726,310 @@ struct SimPlanner : Planner {
             },
             "Acquire yellow key"
         });
-        
-        
         // Sketch 1: Navigate to sword room 
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                bool key = planner.ykey(curr,prev);
-                int D = planner.calculate_distance_from_goal(curr);
-                bool cond =  key && !planner.yswr(curr); //D == 1  &&
+                if(printing_sketches_) std::cout << "SKETCH 1 PRE Computation " << std::endl;
+                bool key = planner.ykey(curr,prev,printing_sketches_);
+                //int D = planner.calculate_distance_from_goal(curr);
+                bool room = planner.yswr(curr);
+                bool cond =  key &&  !room; //D == 1  &&
                 if(printing_sketches_){
-                std::cout << "SKETCH 1 PRE: D=" << D 
-                << " | ykey=" << key << " | door_open=" << planner.door_open(curr)
+                std::cout << "SKETCH 1 PRE:"  
+                << " | ykey=" << key << " | !ysword room=" << !room
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int D = planner.calculate_distance_from_goal(curr); //D == 0 &&
-                bool goal_achieved =  planner.yswr(curr) ;
+                if(printing_sketches_) std::cout << "SKETCH 1 GOAL Computation " << std::endl;
+                bool key = planner.ykey(curr,prev,printing_sketches_);
+                bool room = planner.yswr(curr);
+                bool goal_achieved =  room && key; ;
                 if(printing_sketches_){
-                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | yswr=" << planner.yswr(curr)
-                        << " | D=" << D << std::endl;
+                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | yswr=" << room << " | ykey=" << !key
+                        << std::endl;
                 }
                 return goal_achieved;
             },
             "Reach yswr room"
         });
-
+        //drop ykey
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
+                 if(printing_sketches_) std::cout << "SKETCH 2 PRE Computation " << std::endl;
                 bool key = planner.ykey(curr,prev);
-                bool sword = planner.yswr(curr);
+                bool sword = planner.ysword(curr,prev);
+                bool room = planner.yswr(curr);
                 int D = planner.calculate_distance_from_goal(curr);
-                bool cond =  key && planner.yswr(curr) && !sword; //D == 1  &&
+                bool cond = room && key; //D == 1  &&
                 if(printing_sketches_){
-                std::cout << "SKETCH 1 PRE: D=" << D 
-                << " | ykey=" << key << " | door_open=" << planner.door_open(curr)
+                std::cout << "SKETCH 2 PRE: D=" << D 
+                << " | ykey=" << key << " | ysw room=" << room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                }
+                return cond;
+            },
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
+                if(printing_sketches_) std::cout << "SKETCH 2 GOAL Computation " << std::endl;
+                bool key = planner.ykey(curr,prev);
+                bool room = planner.yswr(curr);
+                bool goal_achieved =  !key  && room; //&& D==1;
+                if(printing_sketches_){
+                std::cout << "SKETCH 2 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | ykey=" << !key
+                        << " | ykey room= " << room << std::endl;
+                }
+                return goal_achieved;
+            },
+            "Drop yellow key"
+        });
+        //get ysword
+         sketches_.push_back(Sketch{
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
+                if(printing_sketches_) std::cout << "SKETCH 3 PRE Computation " << std::endl;
+                bool key = planner.ykey(curr,prev,printing_sketches_);
+                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                bool room = planner.yswr(curr);
+                bool cond = room && !sword  && !key; //D == 1  &&
+                if(printing_sketches_){
+                std::cout << "SKETCH 3 PRE:" 
+                << " | !ykey=" << !key << " | ysw room=" << room << " | !ysword=" << !sword
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int D = planner.calculate_distance_from_goal(curr); //D == 0 &&
-                bool key = planner.ykey(curr,prev);
-                bool sword = planner.yswr(curr);
-                bool room = planner.ykeyr(curr);
-                bool goal_achieved =  !key && sword && !room; //&& D==1;
+                if(printing_sketches_) std::cout << "SKETCH 3 GOAL Computation " << std::endl;
+                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                bool goal_achieved =  sword; //&& D==1;
                 if(printing_sketches_){
-                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | yswr=" << planner.yswr(curr)
-                        << " | D=" << D << std::endl;
+                std::cout << "SKETCH 3 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword << std::endl;
                 }
                 return goal_achieved;
             },
             "Pick up yellow sword"
         });
-         /*
-         // Sketch 1: Navigate to black gate 
-        sketches_.push_back(Sketch{
+        // go to room with ydragon
+         /*sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 1) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.ykey(curr,prev); 
-                bool door = planner.door_open(curr);
-                bool cond = D == 1 && key && !door;
-                if(printing_sketches_){
-                std::cout << "SKETCH 1 PRE: D=" << D << " | ykey=" << key 
-                        << " | door=" << door
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int curr_dist = planner.dist_to_nav2(curr);
-                int prev_dist = planner.dist_to_nav2(prevs);
-                int D = planner.calculate_distance_from_goal(curr);
-                //reduce or stay there
-                bool reduce_dist = ((curr_dist+40 <= prev_dist && curr_dist > 0 && prev_dist > 0) );
-                bool door_open = stay_near_door(curr,prevs);
-                //if(curr_dist > 0) door_open = reduce_dist;
-                //bool goal_achieved = (reachednav1 || (curr_dist < prev_dist && curr_dist >= 0 && prev_dist >= 0)) && D ==1 ;
-              
-                bool goal_achieved = D == 1 && door_open &&  planner.ykey(curr,prev);
-                if(printing_sketches_){
-                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        //<< " | nav2_dist: " << curr_dist << " (prev: " << prev_dist << ")"
-                        << " | D=" << D << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Reach nav 1"
-        });
-       
-        // Sketch 2: Navigate to inner gate (nav3)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 3) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.ykey(curr,prev); 
-                bool cond = D == 1 && key  &&  reachednav2;
-                if(printing_sketches_){
-                std::cout << "SKETCH 2 PRE: D=" << D << " | ykey=" << key 
-                        << " | reachednav2=" << reachednav2 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int curr_dist = planner.dist_to_nav3(curr);
-                int prev_dist = planner.dist_to_nav3(prev);
-                int D = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = ((curr_dist < prev_dist && curr_dist >= 0 && prev_dist >= 0 )|| reachednav3) && D <=1;
-                if(printing_sketches_){
-                std::cout << "SKETCH 2 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | nav3_dist: " << curr_dist << " (prev: " << prev_dist << ")"
-                        << " | D=" << D << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Reach inner gate"
-        });
-
-        // Sketch 3: Acquire yellow sword
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 4) return false;
-                int D = planner.calculate_distance_from_goal(curr);
+                bool key = planner.ykey(curr,prev);
+                bool sword = planner.ysword(curr,prev);
                 bool room = planner.yswr(curr);
+                int D = planner.calculate_distance_from_goal(curr);
+                bool cond = room && sword;
+                if(printing_sketches_){
+                std::cout << "SKETCH 1 PRE:" 
+                 << " | ysw room=" << room << " | ysword=" << sword << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                }
+                return cond;
+            },
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
+                bool dragonr = planner.ydragonr(curr);
                 bool sword = planner.ysword(curr,prev);
-                bool cond = D == 0 && !sword && room;
+                bool goal_achieved = dragonr && sword; 
                 if(printing_sketches_){
-                std::cout << "SKETCH 3 PRE: D=" << D << " | !ysword=" << !sword 
-                        << " | yswr=" << room 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                bool sword = planner.ysword(curr,prev);
-                int curr_dist = ysword_dist(curr); 
-                int prev_dist = ysword_dist(prev);
-                int D = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = (sword || (curr_dist < prev_dist && curr_dist >= 0 && prev_dist >= 0)) && D == 0;
-                if(printing_sketches_){
-                std::cout << "SKETCH 3 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
-                        << " | ysword=" << sword 
-                        << " | ysword_dist: " << curr_dist << " (prev: " << prev_dist << ")"
-                        << " | D=" << D << std::endl;
+                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | ydragonr=" << dragonr << std::endl;
                 }
                 return goal_achieved;
             },
-            "Acquire yellow sword"
-        });
-
-        // Sketch 4: Navigate to yellow dragon room (D==5)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 5) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool sword = planner.ysword(curr,prev);
-                bool cond = D >= 0 && D < 5 && sword;
-                if(printing_sketches_){
-                std::cout << "SKETCH 4 PRE: D=" << D << " | ysword=" << sword 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                int prevD = planner.calculate_distance_from_goal(prev);
-                bool goal_achieved = (currD == 5) || currD > prevD;
-                if(printing_sketches_){
-                std::cout << "SKETCH 4 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | D_curr=" << currD << " (prev: " << prevD << ")" << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Reach yellow dragon room"
-        });
-
-        // Sketch 5: Kill yellow dragon
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 6) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool dragon = !planner.ydragon_killed(curr);
-                bool cond = D == 5 && dragon;
-                if(printing_sketches_){
-                std::cout << "SKETCH 5 PRE: D=" << D << " | !ydragon_killed=" << dragon 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int D = planner.calculate_distance_from_goal(curr);
-                bool dragon = planner.ydragon_killed(curr);
-                bool goal_achieved = dragon && D == 5;
-                if(printing_sketches_){
-                std::cout << "SKETCH 5 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
-                        << " | ydragon_killed=" << dragon 
-                        << " | D=" << D << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Kill yellow dragon"
-        });
-
-        // Sketch 6: Return to junction (D==2)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 7) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool cond = D == 5 && planner.ydragon_killed(curr);
-                if(printing_sketches_){
-                std::cout << "SKETCH 6 PRE: D=" << D << " | ydragon_killed=" << planner.ydragon_killed(curr) 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                        return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = (currD == 2);
-                if(printing_sketches_){
-                std::cout << "SKETCH 6 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | D_curr=" << currD << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Return to junction"
-        });
-
-        // Sketch 7: Navigate to green dragon room (D==4)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 8) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool cond = D >= 2 && D < 4 && planner.ydragon_killed(curr);
-                if(printing_sketches_){
-                std::cout << "SKETCH 7 PRE: D=" << D << " | ydragon_killed=" << planner.ydragon_killed(curr) 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                int prevD = planner.calculate_distance_from_goal(prev);
-                bool goal_achieved = (currD == 4) || (currD > prevD);
-                if(printing_sketches_){
-                std::cout << "SKETCH 7 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | D_curr=" << currD << " (prev: " << prevD << ")" << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Reach green dragon room"
-        });
-
-        // Sketch 8: Kill green dragon
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 9) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool cond = D == 4 && !planner.gdragon_killed(curr);
-                if(printing_sketches_){
-                std::cout << "SKETCH 8 PRE: D=" << D << " | !gdragon_killed=" << !planner.gdragon_killed(curr) 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                bool goal_achieved = planner.gdragon_killed(curr);
-                if(printing_sketches_){
-                std::cout << "SKETCH 8 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
-                        << " | gdragon_killed=" << goal_achieved << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Kill green dragon"
-        });
-
-        // Sketch 9: Acquire black key
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 10) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.bkey(curr,prev);
-                bool room = planner.bkeyr(curr);
-                bool cond = D == 4 && planner.gdragon_killed(curr) && !key && room;
-                if(printing_sketches_){
-                std::cout << "SKETCH 9 PRE: D=" << D << " | gdragon_killed=" << planner.gdragon_killed(curr)
-                        << " | !bkey=" << !key << " | bkeyr=" << room 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                bool key = planner.bkey(curr,prev);
-                int D = planner.calculate_distance_from_goal(curr);
-                int curr_dist = bkey_dist(curr); 
-                int prev_dist = bkey_dist(prev);
-                bool goal_achieved = (key || (curr_dist < prev_dist && curr_dist >= 0 && prev_dist >= 0))  && D==4;
-                if(printing_sketches_){
-                std::cout << "SKETCH 9 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
-                        << " | bkey=" << key 
-                        << " | bkey_dist: " << curr_dist << " (prev: " << prev_dist << ")"
-                        << " | D=" << D << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Acquire black key"
-        });
-
-        // Sketch 10: Return to junction with black key (D==2)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 11) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.bkey(curr,prev);
-                bool cond = D <= 4 && D > 2 && key;
-                if(printing_sketches_){
-                std::cout << "SKETCH 10 PRE: D=" << D << " | bkey=" << key 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                int prevD = planner.calculate_distance_from_goal(prev);
-                bool goal_achieved = (currD == 2) || currD < prevD;
-                if(printing_sketches_){
-                std::cout << "SKETCH 10 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | D_curr=" << currD << " (prev: " << prevD << ")" << std::endl;
-                }   
-                        return goal_achieved;
-            },
-            "Return to junction with black key"
-        });
-
-        // Sketch 11: Navigate to chalice path (D==5)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 12) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.bkey(curr,prev);
-                bool cond = D == 2 && key;
-                if(printing_sketches_){
-                std::cout << "SKETCH 11 PRE: D=" << D << " | bkey=" << key 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                        return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = (currD == 5);
-                if(printing_sketches_){
-                std::cout << "SKETCH 11 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | D_curr=" << currD << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Reach chalice path"
-        });
-
-        // Sketch 12: Navigate to chalice room (D==9)
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 13) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool cond = D >= 5 && D < 9 && bkeyt;
-                if(printing_sketches_){
-                std::cout << "SKETCH 12 PRE: D=" << D << " | bkeyt=" << bkeyt 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                        return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = (currD == 9);
-
-                if(printing_sketches_){
-                std::cout << "SKETCH 12 GOAL: " << (goal_achieved ? "REACHED" : "MOVING")
-                        << " | D_curr=" << currD << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Reach chalice room"
-        });
-
-        // Sketch 13: Acquire chalice
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 14) return false;
-                bool key = planner.chalice(curr,prev);
-                bool room = planner.chalicer(curr);
-                int D = planner.calculate_distance_from_goal(curr);
-                bool cond = D == 9 && !key && room;
-                if(printing_sketches_){
-                std::cout << "SKETCH 13 PRE: D=" << D << " | !chalice=" << !key 
-                        << " | chalicer=" << room 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                        return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                bool key = planner.chalice(curr,prev);
-                int curr_dist = chalice_dist(curr);
-                int prev_dist = chalice_dist(prev);
-                int D = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = (key || (curr_dist < prev_dist && curr_dist >= 0 && prev_dist >= 0 )) && D == 9;
-                if(printing_sketches_){
-                std::cout << "SKETCH 13 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
-                        << " | chalice=" << key 
-                        << " | chalice_dist: " << curr_dist << " (prev: " << prev_dist << ")"
-                        << " | D=" << D << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Acquire chalice"
-        });
-
-        // Sketch 14: Return to start
-        sketches_.push_back(Sketch{
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(planner.priority_ != 15) return false;
-                int D = planner.calculate_distance_from_goal(curr);
-                bool key = planner.chalice(curr,prev);
-                bool cond = D <= 9 && key;
-                if(printing_sketches_){
-                std::cout << "SKETCH 14 PRE: D=" << D << " | chalice=" << key 
-                        << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
-                }
-                return cond;
-            },
-            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                int currD = planner.calculate_distance_from_goal(curr);
-                bool goal_achieved = (currD == 0);
-                if(printing_sketches_){
-                std::cout << "SKETCH 14 GOAL: " << (goal_achieved ? "VICTORY!" : "RETURNING")
-                        << " | D_curr=" << currD << std::endl;
-                }
-                return goal_achieved;
-            },
-            "Return to start"
+            "Go to room with ydragon"
         });*/
+        //kill ydragon
+        sketches_.push_back(Sketch{
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
+                if(printing_sketches_) std::cout << "SKETCH 4 PRE Computation " << std::endl;
+                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                bool ydrag = planner.ydragon_killed(curr);
+                bool cond = sword && !ydrag;
+                if(printing_sketches_){
+                std::cout << "SKETCH 4 PRE:" << " | ysword=" << sword << " | !ydrag=" << !ydrag << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                }
+                return cond;
+            },
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
+                if(printing_sketches_) std::cout << "SKETCH 4 GOAL Computation " << std::endl;
+                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                bool ydrag = planner.ydragon_killed(curr);
+                bool goal_achieved = sword && ydrag;
+                if(printing_sketches_){
+                std::cout << "SKETCH 4 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | ydragon_killed=" << ydrag << std::endl;
+                }
+                return goal_achieved;
+            },
+            "kill ydragon"
+        });
+        
     }
+
+    void initialize_sketches_seaquest() {
+        //P: Person on Board, H: Human in Water, E: enemies, O:Oxygen
+        sketches_.clear();
+        //Sketch 1: not A → B (no oxygen → get oxygen )
+        sketches_.push_back(Sketch{
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_) {
+                //std::cout << "sketch 1 pre" << std::endl; 
+                //!planner.has_oxygen(curr)
+                return planner.oxygen_left(curr) <= 3 ;
+            },
+            [this](const SimPlanner& planner,const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_, const std::vector<pixel_t>& prevs= MyALEScreen::initial_background_image_) {
+                /*
+                auto[curr_enemies, curr_human] = planner.has_enemies(curr); 
+                auto[past_enemies, past_human] = planner.has_enemies(prev); 
+                bool enemies_regardless = (curr_enemies >= past_enemies ) || (curr_enemies <= past_enemies ); 
+                bool human_in_water_regardless = (curr_human >= past_human ) || (curr_human <= past_human ); 
+                && enemies_regardless && human_in_water_regardless */
+                return planner.oxygen_left(curr) > 3 ;//&& planner.count_humans_on_board(prev) <= planner.count_humans_on_board(curr) ; 
+            },
+            "no O → O, P?, E?, H?"
+        });
+    
+        // Sketch 2: P<6, O → O, P++ increases (not max human onboard → humans on board increases)
+        sketches_.push_back(Sketch{
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_) {
+                //std::cout << "sketch 2 pre" << std::endl;
+                 auto[curr_enemies, curr_human] = planner.has_enemies(curr); 
+                return planner.has_oxygen(curr) && planner.count_humans_on_board(curr) < 6 && curr_human > 0 ;
+            },
+            [this](const SimPlanner& planner,const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_, const std::vector<pixel_t>& prevs= MyALEScreen::initial_background_image_) {
+                
+                auto[curr_enemies, curr_human] = planner.has_enemies(curr); 
+                auto[past_enemies, past_human] = planner.has_enemies(prevs); 
+                /*
+                && enemies_regardless
+                bool enemies_regardless = (curr_enemies >= past_enemies ) || (curr_enemies <= past_enemies ); 
+                */
+                
+                return planner.has_oxygen(curr) &&  planner.count_humans_on_board(prevs) < planner.count_humans_on_board(curr)  && curr_human <= past_human; 
+            },
+            "P<6 and O and H>0 → P++, O, H--"
+        });
+    
+        // Sketch 3: O && P == 6 → O && P == 0 (oxygen and max #ppl in ship ->  set number of ppl in ship to 0)
+        sketches_.push_back(Sketch{
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_) {
+                //std::cout << "sketch 3 pre" << std::endl;
+                return planner.has_oxygen(curr) && planner.count_humans_on_board(curr) == 6;
+            },
+            [this](const SimPlanner& planner,const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_, const std::vector<pixel_t>& prevs= MyALEScreen::initial_background_image_) {
+               
+                /*
+                 auto[curr_enemies, curr_human] = planner.has_enemies(curr); 
+                auto[past_enemies, past_human] = planner.has_enemies(prev);
+                 && curr_enemies >= past_enemies && curr_human >= past_human
+                */ 
+                return planner.has_oxygen(curr) && planner.count_humans_on_board(curr) == 0 ; 
+            },
+            " O && P == 6 → O && P == 0 "
+        });
+        // Sketch 4: E > 0 && O --> E-- (enemies present &&  oxygen → enemies less)
+        sketches_.push_back(Sketch{
+            [this](const SimPlanner& planner, const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_) {
+                //std::cout << "sketch 4 pre" << std::endl;
+                auto[curr_enemies, curr_human] = planner.has_enemies(curr); 
+                return planner.has_oxygen(curr) && curr_enemies > 0;
+            },
+            [this](const SimPlanner& planner,const std::vector<pixel_t>& prev= MyALEScreen::initial_background_image_, const std::vector<pixel_t>& curr = MyALEScreen::initial_background_image_, const std::vector<pixel_t>& prevs= MyALEScreen::initial_background_image_) {
+                auto[curr_enemies, curr_human] = planner.has_enemies(curr); 
+                auto[past_enemies, past_human] = planner.has_enemies(prev); 
+                //&& planner.count_humans_on_board(prev) <= planner.count_humans_on_board(curr)
+                return planner.has_oxygen(curr)  && curr_enemies >= past_enemies && curr_human >= past_human ;
+            },
+            " E > 0 && O --> E-- && O && H? "
+        });
+
+    }
+    
+    //sequest 
+    //const std::vector<bool> humans = {false,false, false, false,false,false}; 
+    const pixel_t SHIP_COLOR   = greyscale(187,187, 53);
+    const pixel_t WATER_COLOR  = greyscale(0, 28, 136);
+    const pixel_t HUMAN_COLOR = greyscale(24,26,167);//greyscale(18,19,157); 
+    const pixel_t HUMAN_IN_WATER = greyscale(66,72,200);
+    const pixel_t black = greyscale(0,0,0);
+    const std::vector<int> human_positions = { 300, 340, 380, 420, 460, 500 }; // 
+    int count_humans_on_board(const std::vector<pixel_t>& screen_pixels) const {
+       
+        // Define your screenshot resolution (480x640 as an example, adjust as necessary)
+       
+        int human_count = 0;
+        size_t y_min = 180; 
+        size_t y_max = 185; 
+        for(int i = 0; i < human_positions.size(); i++) {
+            for(size_t j = y_min; j < y_max; j++ ){
+                int index = j* SCREEN_WIDTH + static_cast<size_t>(human_positions[i] * SCALE_X); 
+                bool not_background = color_diff(screen_pixels[index], MyALEScreen::initial_background_image_[index]) > COLOR_THRESHOLD; 
+                bool human_color = color_diff(screen_pixels[index], HUMAN_COLOR) <= COLOR_THRESHOLD; 
+                if(not_background && human_color ){
+                        human_count++;
+                        break; 
+                } // Calculate the pixel index in the 1D array
+            }
+        }
+        if (human_count > 0)  {
+            //std::cout << "Humans on board: " << human_count << std::endl;
+            /*for(int i = 0; i < screen_pixels.size(); i++) {
+                std::cout << static_cast<int>( screen_pixels[i]) << " ";
+                if(i != 0 && i % SCREEN_WIDTH == 0 ) std::cout << std::endl; 
+            }
+            std::cout << std::endl; */
+        }
+        //std::cout << "Humans on board: " << human_count << std::endl;
+       return human_count;
+    }
+    bool has_oxygen(const std::vector<pixel_t> &feature_atoms) const {
+        
+        // Define your screenshot resolution (480x640 as an example, adjust as necessary)
+        //for (int y = static_cast<int>(475 * SCALE_Y); y <= static_cast<int>(500*SCALE_Y); y++) {
+            for (int x = static_cast<int>(230* SCALE_X); x <= static_cast<int>(560 * SCALE_X); x++) {
+                int pixel_index = static_cast<int>(489 * SCALE_Y) * SCREEN_WIDTH + x;  // Calculate the pixel index in the 1D array
+                bool is_black_pixel = color_diff(feature_atoms[pixel_index], black) <= COLOR_THRESHOLD ;
+                bool is_background  = color_diff(feature_atoms[pixel_index], MyALEScreen::initial_background_image_[pixel_index]) <= COLOR_THRESHOLD;
+                if (is_black_pixel && !is_background) {
+                    //std::cout << "Black pixel found in oxgen bar" << std::endl;
+                    return false;  // Found a non-empty pixel, indicating oxygen presence
+                }
+            }
+        //}
+    
+        //std::cout << "No black pixel found in oxygen bar" << std::endl;
+        return true;
+
+    }
+    int oxygen_left(const std::vector<pixel_t> &feature_atoms) const {
+        int resultpercent = 0; 
+        for(size_t i = 49; i < 111; i += 6){
+            int pixel_index = 172 * SCREEN_WIDTH + i;  // Calculate the pixel index in the 1D array
+            if(color_diff(feature_atoms[pixel_index], 214) <= COLOR_THRESHOLD) resultpercent ++; 
+        }
+        return resultpercent; 
+    }
+    std::tuple<int, int> has_enemies(const std::vector<pixel_t> &feature_atoms) const {
+        const int scan_y_min  = 158; 
+        const int scan_y_max  = 435;
+        const int scan_x_min  = 35;
+        const int scan_x_max  = 800;
+        int enemies = 0; 
+        int human = 0; 
+        for (int y = static_cast<int>(scan_y_min * SCALE_Y); y <= static_cast<int>(scan_y_max * SCALE_Y); ++y) {
+            for (int x = static_cast<int>(scan_x_min * SCALE_X); x <= static_cast<int>(scan_x_max * SCALE_X); ++x) {
+                int pixel_index = y * SCREEN_WIDTH + x;
+                //check if pixel is water, ship, or human --> skip 
+                //if not --> check same as background  --> skip
+                //if not --> count as enemy
+                //logic: not same as background 
+                //bool is_water = color_diff(feature_atoms[pixel_index], WATER_COLOR) <= COLOR_THRESHOLD;
+                bool is_ship = color_diff(feature_atoms[pixel_index], SHIP_COLOR) <= COLOR_THRESHOLD;
+                bool is_human = color_diff(feature_atoms[pixel_index], HUMAN_IN_WATER) <= COLOR_THRESHOLD;
+                bool is_background = color_diff(feature_atoms[pixel_index], MyALEScreen::initial_background_image_[pixel_index]) <= COLOR_THRESHOLD;
+                if( !(is_ship || is_human || is_background)  ) {
+                    //std::cout << "Skipping water, ship, or human pixel at (" << x << ", " << y << ")" << std::endl;
+                    enemies ++; // Skip water, ship, or human pixels
+                }else if (is_human) human++;
+            }
+        }
+        return std::make_tuple(enemies, human);
+    }
+    
+    
     
 };
 #endif

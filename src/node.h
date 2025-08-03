@@ -346,23 +346,6 @@ class Node {
         // Filter actions based on sketch type and held items
         bool acquisition_sketch = (current_priority == 4 || current_priority == 10|| current_priority == 14 );
 
-        if ((node_ykeyt || node_bkeyt || node_yswrt || node_chalicet) && acquisition_sketch) {
-                if(debug) std::cout << "Forcing action 1 (FIRE) due to held item" << std::endl;
-                // Holding an item - force FIRE action (1)
-                for (Node *child = first_child_; child != nullptr; child = child->sibling_) {
-                    if (child->action_ == 1) {
-                        candidate_children.push_back(child);
-                        break;
-                    }
-                }
-        } else {
-            // Non-acquisition sketch - avoid NOOP (0) and FIRE (1)
-            for (Node *child = first_child_; child != nullptr; child = child->sibling_) {
-                if (child->action_ != 0 && child->action_ != 1) {
-                    candidate_children.push_back(child);
-                }
-            }
-        }
         
         // Fallback to all children if no candidates
         if (candidate_children.empty()) {
@@ -429,19 +412,7 @@ class Node {
             branch.push_back(best_child->action_);
             if(new_iw_debug) std::cout << std::endl << "Best child action_nr: " << action_nr << " action:" << best_child->action_  << std::endl;
             if(new_iw_debug) std::cout << " after child" << "ykeyt: " << best_child->node_ykeyt << " bkeyt: " << best_child->node_bkeyt << " yswrt: " << best_child->node_yswrt << " chalicet: " << best_child->node_chalicet << std::endl;
-            if(best_child->action_ == 1) {
-                if(print_debug) logging::Logger::Info << logging::Logger::green() << "Found FIRE action in best child" << std::endl;
-                best_child->node_ykeyt = false;
-                best_child->node_bkeyt = false;
-                best_child->node_yswrt = false;
-                best_child->node_chalicet = false;
-            }
-            //calling recursively till leaf node
-            /*if(lookahead_depth > 0) {
-                best_child->best_sketch_branch(branch, target_sketch, lookahead_depth - 1, discount);
-            }*/
-            //best_child->best_sketch_branch(branch, target_sketch, lookahead_depth-1, discount);
-            // If lookahead depth is 0, we don't want to go deeper
+            
         }
         
     }
@@ -476,7 +447,7 @@ class Node {
                 // Return path if any sketch is fulfilled
                 if (fulfilled_count > 0) {
                     if(new_iw_debug) std::cout <<"this was the max_depth " << max_depth << " searched till " << depth << std::endl;
-                    for(auto action : path) {
+                    /*for(auto action : path) {
                         if(action == 1){
                             current->node_ykeyt = false;
                             current->node_bkeyt = false;
@@ -484,7 +455,7 @@ class Node {
                             current->node_chalicet = false;
                             if(new_iw_debug) std::cout << "Found FIRE action in path, resetting item states" << std::endl;
                         }
-                    }
+                    }*/
                     return path;
                 }
                 

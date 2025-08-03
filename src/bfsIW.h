@@ -61,6 +61,7 @@ struct BfsIW : SimPlanner {
         nodes_threshold_(nodes_threshold),
         break_ties_using_rewards_(break_ties_using_rewards), game(games) ,depth_to_search(look_ahead) {
            initalize_sketches_adventure();
+           //initialize_sketches_seaquest();
            /* if(game == 0) initialize_sketches();
             else if (game == 1) initialize_sketches_breakout(); 
             else */
@@ -188,9 +189,7 @@ struct BfsIW : SimPlanner {
                           << " value=" << root->value_
                           << ", imm-reward=" << root->reward_
                           << ", children=[";
-            /*for( Node *child = root->first_child_; child != nullptr; child = child->sibling_ )
-                logging::Logger::Continuation(logging::Logger::Debug) << child->value_ << ":" << child->action_ << " ";
-            logging::Logger::Continuation(logging::Logger::Debug) << "]" << logging::Logger::normal() << std::endl;*/
+            if(transition_printing_debug) std::cout << "Root node preconditions: " << std::endl;
              if(root->parent_->screen_pixels_.size() > 0)  {
                 bool printing = transition_printing_debug ? true : false;
                 root->pre = check_sketches_preconditions(root->parent_->screen_pixels_,root->screen_pixels_, *this, root, printing);
@@ -199,6 +198,9 @@ struct BfsIW : SimPlanner {
                 bool printing = transition_printing_debug ? true : false;
                 root->pre = check_sketches_preconditions(root->screen_pixels_,root->screen_pixels_, *this, root, printing);
             }
+            if(transition_printing_debug) std::cout << "---------------------------------------------------------------------------------" << std::endl;
+            
+            
             // compute branch
 
             int pres = 0; 
@@ -206,52 +208,82 @@ struct BfsIW : SimPlanner {
                 pres += static_cast<int>(i); 
             }
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
-            //root->value_ != 0
-            if(transition_printing_debug && root->grandfather != nullptr ) std::cout << "door_open: " << door_open(root->screen_pixels_) << " curr_dist: " << dist_to_nav2(root->screen_pixels_) << " prev_dist: " << dist_to_nav2(root->grandfather->screen_pixels_) << std::endl;
             if( pres != 0 ) {
                 if(transition_printing_debug)   std::cout << "sketches exploitation with depth lookahead" << std::endl;
                 // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
                  //trial using fulfillment branch
                 if(printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
                 if(!fulfillment_branch_.empty()) {
-                    if(printing_debug) std::cout << "fulfillment branch is not empty, using it" << std::endl;
                     if(transition_printing_debug) {
                         std::cout << "Action in fulfillment branch: "; 
                         for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
                         std::cout  << std::endl;
                     }
                     
-                     branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
+                    
                      if(transition_printing_debug) {
                             debug_time = Utils::read_time_in_seconds();
-
-                            bool temp = ykey(best_node->screen_pixels_, best_node->parent_->screen_pixels_, true);
-                            std::cout<< " ykeyt" << best_node->node_ykeyt  << " ykey found: " << temp <<  best_node->node_ykeyt  << std::endl;
+                            bool temp_before =  best_node->node_yswrt;
+                            if(temp_before && transition_printing_debug) {
+                                std::cout << "father_node is " << 
+                                best_node->parent_->action_ << " and yswrt" <<  best_node->parent_->node_yswrt 
+                                << " current node is " << best_node->action_  << "and yswrt " 
+                                << best_node->node_yswrt << std::endl;
+                            }
+                            //variables of best_node
+                            bool temp_ykeyt = best_node->node_ykeyt; 
+                            bool temp_bkeyt = best_node->node_bkeyt;
+                            bool temp_yswrt = best_node->node_yswrt;
+                            bool temp_chalicet = best_node->node_chalicet;
+                            bool temp_ydragon = best_node->node_ydragon;
+                            bool temp_gdragon = best_node->node_gdragon;
+                            int last_room_color = best_node->node_Last_room_color;
+                            //setting the right states 
+                            set_item_state(best_node, true);
+                        
+                            std::vector<bool> temp_goal = {false};
+                            std::vector<bool> temp_pre = {false};
+                            std::cout<< "checking sketches preconditions and goals for best node: " << best_node->action_ << std::endl;
+                            if(best_node->parent_ != nullptr ){
+                                if(best_node->parent_->parent_ != nullptr)temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->parent_->screen_pixels_, *this, best_node,true);
+                                else  temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true); 
+                                temp_pre = check_sketches_preconditions(best_node->parent_->screen_pixels_, best_node->screen_pixels_, *this, best_node,true);     
+                            }else {
+                                temp_goal = check_sketches_goals(best_node->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true);
+                                temp_pre = check_sketches_preconditions(best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true);
+                            
+                            }
+                            std::cout << "----------------------------------------------------- " << std::endl;
+                            //reseting best_node variables
+                            best_node->node_ykeyt = temp_ykeyt;
+                            best_node->node_bkeyt = temp_bkeyt;
+                            best_node->node_yswrt = temp_yswrt;
+                            best_node->node_chalicet = temp_chalicet;
+                            best_node->node_ydragon = temp_ydragon;
+                            best_node->node_gdragon = temp_gdragon;
+                            best_node->node_Last_room_color = last_room_color;
                         }
                         debug_time_stop = Utils::read_time_in_seconds() - debug_time;
-                    for(const auto& act:fulfillment_branch_) {
-                        if(act == 1) {
-                            best_node ->node_ykeyt = false;
-                            best_node ->node_bkeyt = false;
-                            best_node ->node_yswrt = false;
-                            best_node ->node_chalicet = false;
-                            if(transition_printing_debug) std::cout << "Resetting item states due to action 1" << std::endl;
-                            break;    
-                        }
-                    }
+                    branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
                     fulfillment_branch_.clear();
-                }else {
+                }else{
+                    std::cout << "fulfillment branch is empty" << std::endl;
+                }
+                /*
+                else {
                     //const int lookahead_depth = 10; // Adjust this value as needed
                     root->best_sketch_branch(branch, root->pre, depth_to_search, discount_, priority_,action_nr); 
                     action_nr++;
                 
-                } 
-                
+                }  
                 // Fallback if no branch was found (shouldn't happen)
+                
                 if (branch.empty()) {
                     if(transition_printing_debug)  logging::Logger::Info << logging::Logger::green() << "fallback to original behavior " << std::endl;
                     root->best_branch(branch, discount_);
                 }
+                */
+                
             } else {
                 if(transition_printing_debug)  std::cout << "random actions" << std::endl;
                 if( random_actions_ ) {
@@ -279,7 +311,7 @@ struct BfsIW : SimPlanner {
         // stop timer and print stats
         total_time_ = Utils::read_time_in_seconds() - start_time + debug_time_stop;
         print_stats(logging::Logger::Stats, *root, novelty_table_map);
-
+        if(impotant_debug) std::cout << "bfs: total time: " << total_time_ << " seconds" << std::endl;
         // return root node
         return root;
     }
@@ -367,7 +399,7 @@ struct BfsIW : SimPlanner {
             }
             
             // check termination at this node
-            if(!fulfillment_branch_.empty())
+            
             
             if( node->terminal_ ) {
                 logging::Logger::Continuation(logging::Logger::Debug) << "t" << "," << std::flush;
@@ -426,7 +458,7 @@ struct BfsIW : SimPlanner {
                 logging::Logger::Info << "bfs: stopping search, queue empty=" << queue_empty
                                       << ", simulator budget reached=" << simulator_budget_reached
                                       << ", time budget reached=" << time_budget_reached
-                                      << ", fulfillment branch empty=" << fulfillment_branch_.empty() << std::endl;
+                                      << ", fulfillment branch full=" << !fulfillment_branch_.empty() << std::endl;
             }
             
         }
