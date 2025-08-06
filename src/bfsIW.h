@@ -191,11 +191,11 @@ struct BfsIW : SimPlanner {
                           << ", children=[";
             if(transition_printing_debug) std::cout << "Root node preconditions: " << std::endl;
              if(root->parent_->screen_pixels_.size() > 0)  {
-                bool printing = transition_printing_debug ? true : false;
+                bool printing = printing_debug ? true : false;
                 root->pre = check_sketches_preconditions(root->parent_->screen_pixels_,root->screen_pixels_, *this, root, printing);
              }
             else {
-                bool printing = transition_printing_debug ? true : false;
+                bool printing = printing_debug ? true : false;
                 root->pre = check_sketches_preconditions(root->screen_pixels_,root->screen_pixels_, *this, root, printing);
             }
             if(transition_printing_debug) std::cout << "---------------------------------------------------------------------------------" << std::endl;
@@ -214,15 +214,12 @@ struct BfsIW : SimPlanner {
                  //trial using fulfillment branch
                 if(printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
                 if(!fulfillment_branch_.empty()) {
-                    if(transition_printing_debug) {
-                        std::cout << "Action in fulfillment branch: "; 
-                        for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
-                        std::cout  << std::endl;
-                    }
-                    
-                    
+                    branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
                      if(transition_printing_debug) {
                             debug_time = Utils::read_time_in_seconds();
+                            std::cout << "Action in fulfillment branch: "; 
+                            for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
+                            std::cout  << std::endl;
                             bool temp_before =  best_node->node_yswrt;
                             if(temp_before && transition_printing_debug) {
                                 std::cout << "father_node is " << 
@@ -244,6 +241,9 @@ struct BfsIW : SimPlanner {
                             std::vector<bool> temp_goal = {false};
                             std::vector<bool> temp_pre = {false};
                             std::cout<< "checking sketches preconditions and goals for best node: " << best_node->action_ << std::endl;
+                            std::cout << "ykeyt: " << best_node->node_ykeyt <<  " parents_ykeyt: " << best_node->parent_->node_ykeyt
+                                      << " yswrt: " << best_node->node_yswrt <<  " parents_yswrt: " << best_node->parent_->node_yswrt
+                                      << " last_room_color: " << best_node->node_Last_room_color    << std::endl;
                             if(best_node->parent_ != nullptr ){
                                 if(best_node->parent_->parent_ != nullptr)temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->parent_->screen_pixels_, *this, best_node,true);
                                 else  temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true); 
@@ -264,10 +264,13 @@ struct BfsIW : SimPlanner {
                             best_node->node_Last_room_color = last_room_color;
                         }
                         debug_time_stop = Utils::read_time_in_seconds() - debug_time;
-                    branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
-                    fulfillment_branch_.clear();
                 }else{
-                    std::cout << "fulfillment branch is empty" << std::endl;
+                    std::cout << "fulfillment branch is empty, doing 10 random actions" << std::endl;
+                    for(int i = 0; i < 10; ++i) {
+                        ale::Action action = action_set_[rand() % action_set_.size()];
+                        branch.push_back(action);
+                    }
+
                 }
                 /*
                 else {
@@ -283,9 +286,9 @@ struct BfsIW : SimPlanner {
                     root->best_branch(branch, discount_);
                 }
                 */
-                
-            } else {
-                if(transition_printing_debug)  std::cout << "random actions" << std::endl;
+            } 
+            else {
+                std::cout << "random actions" << std::endl;
                 if( random_actions_ ) {
                     random_decision_ = true;
                     branch.push_back(random_zero_value_action(root, discount_));
@@ -294,7 +297,8 @@ struct BfsIW : SimPlanner {
                     assert(!branch.empty());
                 }
             }
-
+            //clearing fulfillment branch
+            fulfillment_branch_.clear();
             // make sure states along branch exist (only needed when doing partial caching)
             generate_states_along_branch(root, branch, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
 

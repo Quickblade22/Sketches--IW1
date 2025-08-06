@@ -447,15 +447,6 @@ class Node {
                 // Return path if any sketch is fulfilled
                 if (fulfilled_count > 0) {
                     if(new_iw_debug) std::cout <<"this was the max_depth " << max_depth << " searched till " << depth << std::endl;
-                    /*for(auto action : path) {
-                        if(action == 1){
-                            current->node_ykeyt = false;
-                            current->node_bkeyt = false;
-                            current->node_yswrt = false;
-                            current->node_chalicet = false;
-                            if(new_iw_debug) std::cout << "Found FIRE action in path, resetting item states" << std::endl;
-                        }
-                    }*/
                     return path;
                 }
                 

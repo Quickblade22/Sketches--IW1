@@ -1005,7 +1005,7 @@ struct SimPlanner : Planner {
             std::string item_type;
            if (size >= 26 && size <= 30 && color_match(color, COLORS.at("yellow"))) {
                 item_type = "yellow_key";
-            }else if (size >= 19 && size <= 25 && color_match(color, COLORS.at("yellow"))) { //22 px
+            }else if (size >= 20 && size <= 25 && color_match(color, COLORS.at("yellow"))) { //22 px
                 item_type = "yellow_sword";
             }
             else if (size >= 26 && size <= 30 && color_match(color, COLORS.at("black"))) {
@@ -1460,8 +1460,8 @@ struct SimPlanner : Planner {
         else if (type == "black_key") to_check = bkeyt;
         else if (type == "chalice") to_check = chalicet; 
         if(printing ) std::cout<< std::endl << (to_check ?  "already touched" : "not touched ") << std::endl ; 
-        if((printing ||impotant_debug) && current_node == nullptr) std::cout << "current_node is nullptr" << std::endl;
         if(to_check && current_node != nullptr && current_node->action_ == 1){
+            std::cout << "already touched item, but action is 1, so resetting state and parent is " << current_node->parent_->action_ << std::endl;
             reset_item_state();
             return false; 
         }
@@ -1530,7 +1530,7 @@ struct SimPlanner : Planner {
 
             if (adjacent_count >= 2) filtered_clusters.push_back(cluster);
         }
-        // Validate clusters
+        
         if(printing){
             std::cout << "Cube position: (" << cube_x << ", " << cube_y << ")" << std::endl;
             std::cout << " Clusters found: " << clusters.size() <<  " filtered clusters: " << filtered_clusters.size() << std::endl;
@@ -1541,11 +1541,8 @@ struct SimPlanner : Planner {
                 std:: cout << "cluster size: " << cluster.size() << " with color: " << static_cast<int>( color) << " in filtered cluster included " << in_filtered <<  std::endl;
             } 
         }
+        // Validate clusters
         for (const auto& cluster : filtered_clusters) {
-            /*if (!cluster_in_regions(cluster, regions)) {
-                continue;
-            }*/
-            
             size_t size = cluster.size();
             auto first_pixel = *cluster.begin();
             pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
@@ -1567,7 +1564,7 @@ struct SimPlanner : Planner {
                 chalicet = false;
                 if (printing_debug) std::cout << " founnd bkeyt " << std::endl;
                 return true; 
-            }else if (size >= 19 && size <= 25 && color_match(color, COLORS.at("yellow")) && type == "yellow_sword") {
+            }else if (size >= 20 && size <= 25 && color_match(color, COLORS.at("yellow")) && type == "yellow_sword") {
                 yswrt = true; 
                 ykeyt = false;
                 bkeyt = false;
@@ -1583,7 +1580,6 @@ struct SimPlanner : Planner {
                 return true; 
             }
         }
-        
         if (printing_debug||printing) std::cout << " found nothing " << std::endl; 
         
         return false;
@@ -1613,7 +1609,7 @@ struct SimPlanner : Planner {
                 }
             }
         }
-        
+        //cluster pixels 
         return cluster_pixels(touching_pixels, screen_pixels);
     }
     
@@ -1704,7 +1700,7 @@ struct SimPlanner : Planner {
                 bool cond =  (!key && room && !sword_room )  ;  //D == 1 &&
                 if(printing_sketches_){
                 std::cout<< std::endl; 
-                std::cout << "SKETCH 0 PRE:" //<< D 
+                std::cout << "SKETCH 0 PREc (Acquire Key):" //<< D 
                         << " | !ykey=" << !key
                         << " | ykeyr=" << room << " | !sword_room " << !sword_room
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
@@ -1735,7 +1731,7 @@ struct SimPlanner : Planner {
                 bool room = planner.yswr(curr);
                 bool cond =  key &&  !room; //D == 1  &&
                 if(printing_sketches_){
-                std::cout << "SKETCH 1 PRE:"  
+                std::cout << "SKETCH 1 PRE go sword room:"  
                 << " | ykey=" << key << " | !ysword room=" << !room
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
@@ -1747,7 +1743,7 @@ struct SimPlanner : Planner {
                 bool room = planner.yswr(curr);
                 bool goal_achieved =  room && key; ;
                 if(printing_sketches_){
-                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | yswr=" << room << " | ykey=" << !key
+                std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | yswr=" << room << " | ykey=" << key
                         << std::endl;
                 }
                 return goal_achieved;
@@ -1758,24 +1754,23 @@ struct SimPlanner : Planner {
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
                  if(printing_sketches_) std::cout << "SKETCH 2 PRE Computation " << std::endl;
-                bool key = planner.ykey(curr,prev);
-                bool sword = planner.ysword(curr,prev);
+                bool key = planner.ykey(curr,prev,printing_sketches_);
                 bool room = planner.yswr(curr);
-                int D = planner.calculate_distance_from_goal(curr);
                 bool cond = room && key; //D == 1  &&
                 if(printing_sketches_){
-                std::cout << "SKETCH 2 PRE: D=" << D 
+                std::cout << "SKETCH 2 PRE Drop key: " 
                 << " | ykey=" << key << " | ysw room=" << room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
                 if(printing_sketches_) std::cout << "SKETCH 2 GOAL Computation " << std::endl;
-                bool key = planner.ykey(curr,prev);
+                bool key = planner.ykey(curr,prev,printing_sketches_);
                 bool room = planner.yswr(curr);
                 bool goal_achieved =  !key  && room; //&& D==1;
                 if(printing_sketches_){
-                std::cout << "SKETCH 2 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | ykey=" << !key
+                std::cout << "SKETCH 2 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") 
+                << " | ykey=" << !key
                         << " | ykey room= " << room << std::endl;
                 }
                 return goal_achieved;
@@ -1791,7 +1786,7 @@ struct SimPlanner : Planner {
                 bool room = planner.yswr(curr);
                 bool cond = room && !sword  && !key; //D == 1  &&
                 if(printing_sketches_){
-                std::cout << "SKETCH 3 PRE:" 
+                std::cout << "SKETCH 3 PRE: (get ysword)" 
                 << " | !ykey=" << !key << " | ysw room=" << room << " | !ysword=" << !sword
                         << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }

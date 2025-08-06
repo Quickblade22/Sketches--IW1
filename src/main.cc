@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
     int opt_max_rep;
     int opt_nodes_threshold;
     bool opt_novelty_subtables = false;
-    bool opt_random_actions = false;
+    bool opt_random_actions = true;
     bool opt_use_alpha_to_update_reward_for_death = false;
     int lookahead_depth = 100; // default lookahead depth
     int opt_printing_sketches = 0; // default printing sketches
@@ -302,7 +302,7 @@ int main(int argc, char **argv) {
       // options for online execution
       ("initial-random-noops", po::value<int>(&opt_initial_random_noops)->default_value(30), "Set max number of initial noops, actual # is sampled (default is 30)")
       ("lookahead-caching", po::value<int>(&opt_lookahead_caching)->default_value(2), "Set lookahead caching: 0=none, 1=partial, 2=full (default is 2)")
-      ("simulator-budget", po::value<int>(&opt_simulator_budget)->default_value(500000),  "Set budget for #calls to simulator for online decision making (default is 150k)")
+      ("simulator-budget", po::value<int>(&opt_simulator_budget)->default_value(150000),  "Set budget for #calls to simulator for online decision making (default is 150k)")
       //500000 150000
       ("time-budget", po::value<float>(&opt_time_budget)->default_value(numeric_limits<float>::infinity()), "Set time budget for online decision making (default is infinite)")
       ("execute-single-action", "Execute only one action from best branch in lookahead (default is to execute prefix until first reward)")
@@ -346,7 +346,7 @@ int main(int argc, char **argv) {
     opt_use_minimal_action_set = opt_varmap.count("use-minimal-action-set");
     opt_execute_single_action = opt_varmap.count("execute-single-action");
     opt_novelty_subtables = opt_varmap.count("novelty-subtables");
-    opt_random_actions = opt_varmap.count("random-actions");
+    //opt_random_actions = opt_varmap.count("random-actions");
     opt_use_alpha_to_update_reward_for_death = opt_varmap.count("use-alpha-to-update-reward-for-death");
     opt_break_ties_using_rewards = opt_varmap.count("break-ties-using-rewards");
 
