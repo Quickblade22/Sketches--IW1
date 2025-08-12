@@ -342,11 +342,6 @@ class Node {
         assert(num_children_ > 0 && first_child_ != nullptr);
         
         std::vector<Node*> candidate_children;
-         if (debug) std::cout << "Priority: " << current_priority << " ykeyt: " << node_ykeyt << " bkeyt: " << node_bkeyt << " yswrt: " << node_yswrt << " chalicet: " << node_chalicet << std::endl;
-        // Filter actions based on sketch type and held items
-        bool acquisition_sketch = (current_priority == 4 || current_priority == 10|| current_priority == 14 );
-
-        
         // Fallback to all children if no candidates
         if (candidate_children.empty()) {
             for (Node *child = first_child_; child != nullptr; child = child->sibling_) {
@@ -393,25 +388,23 @@ class Node {
     void best_sketch_branch(std::deque<Action>& branch, const std::vector<bool>& target_sketch, int lookahead_depth, float discount,int priority = 0,int action_nr=0) const {
         // Try to find shortest path to sketch fulfillment
     if (debug) std::cout << "Best_sketch_branch called with depth: " << lookahead_depth << std::endl;
-    auto branchs = find_sketch_fulfillment_path(target_sketch, lookahead_depth); //resets the item states if action 1 is found
-    if(new_iw_debug) std::cout << "found a path "<< branchs.size() << std::endl;
-    if (!branchs.empty()) {
-        branch.insert(branch.begin(), branch.end(), branchs.begin()); // Insert current action at the start
-        if (new_iw_debug) {
-          for(auto i: branch) {
-            std::cout << "Action in branch: " << i << std::endl;
-          }
+        auto branchs = find_sketch_fulfillment_path(target_sketch, lookahead_depth); //resets the item states if action 1 is found
+            if(new_iw_debug) std::cout << "found a path "<< branchs.size() << std::endl;
+            if (!branchs.empty()) {
+                branch.insert(branch.begin(), branch.end(), branchs.begin()); // Insert current action at the start
+                if (new_iw_debug) {
+                for(auto i: branch) {
+                    std::cout << "Action in branch: " << i << std::endl;
+                }
+                }
         }
-    }
+
         if(new_iw_debug) std::cout << "falling back to orignal selection of child in Node " << lookahead_depth << std::endl;
         if (num_children_ > 0  ) { //&& lookahead_depth > 0
-            if(new_iw_debug) logging::Logger::Info << logging::Logger::green() << "Best_sketch_brand called with depth: " << lookahead_depth << std::endl;
-            if(new_iw_debug) std::cout << "before " << "ykeyt: " << node_ykeyt << " bkeyt: " << node_bkeyt << " yswrt: " << node_yswrt << " chalicet: " << node_chalicet << std::endl;
             Node* best_child = select_child_by_sketch_potential(target_sketch, lookahead_depth, discount,priority);
             
             branch.push_back(best_child->action_);
             if(new_iw_debug) std::cout << std::endl << "Best child action_nr: " << action_nr << " action:" << best_child->action_  << std::endl;
-            if(new_iw_debug) std::cout << " after child" << "ykeyt: " << best_child->node_ykeyt << " bkeyt: " << best_child->node_bkeyt << " yswrt: " << best_child->node_yswrt << " chalicet: " << best_child->node_chalicet << std::endl;
             
         }
         

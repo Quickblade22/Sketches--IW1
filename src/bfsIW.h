@@ -191,12 +191,12 @@ struct BfsIW : SimPlanner {
                           << ", children=[";
             if(transition_printing_debug) std::cout << "Root node preconditions: " << std::endl;
              if(root->parent_->screen_pixels_.size() > 0)  {
-                bool printing = printing_debug ? true : false;
-                root->pre = check_sketches_preconditions(root->parent_->screen_pixels_,root->screen_pixels_, *this, root, printing);
+                bool printing = transition_printing_debug ? true : false;
+                root->pre = check_sketches_preconditions(root->parent_->screen_pixels_,root->screen_pixels_, *this, root, printing, true);
              }
             else {
-                bool printing = printing_debug ? true : false;
-                root->pre = check_sketches_preconditions(root->screen_pixels_,root->screen_pixels_, *this, root, printing);
+                bool printing = transition_printing_debug ? true : false;
+                root->pre = check_sketches_preconditions(root->screen_pixels_,root->screen_pixels_, *this, root, printing, true);
             }
             if(transition_printing_debug) std::cout << "---------------------------------------------------------------------------------" << std::endl;
             
@@ -214,7 +214,7 @@ struct BfsIW : SimPlanner {
                  //trial using fulfillment branch
                 if(printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
                 if(!fulfillment_branch_.empty()) {
-                    branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
+                     branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
                      if(transition_printing_debug) {
                             debug_time = Utils::read_time_in_seconds();
                             std::cout << "Action in fulfillment branch: "; 
@@ -244,17 +244,25 @@ struct BfsIW : SimPlanner {
                             std::cout << "ykeyt: " << best_node->node_ykeyt <<  " parents_ykeyt: " << best_node->parent_->node_ykeyt
                                       << " yswrt: " << best_node->node_yswrt <<  " parents_yswrt: " << best_node->parent_->node_yswrt
                                       << " last_room_color: " << best_node->node_Last_room_color    << std::endl;
-                            if(best_node->parent_ != nullptr ){
-                                if(best_node->parent_->parent_ != nullptr)temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->parent_->screen_pixels_, *this, best_node,true);
-                                else  temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true); 
-                                temp_pre = check_sketches_preconditions(best_node->parent_->screen_pixels_, best_node->screen_pixels_, *this, best_node,true);     
-                            }else {
-                                temp_goal = check_sketches_goals(best_node->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true);
-                                temp_pre = check_sketches_preconditions(best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,true);
-                            
+                            bool trial_debug = true;
+                            bool recompute = true; 
+                            if(recompute){
+                                if(best_node->parent_ != nullptr ){
+                                    if(best_node->parent_->parent_ != nullptr) temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->parent_->screen_pixels_, *this, best_node,trial_debug);
+                                    else  temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug); 
+                                    temp_pre = check_sketches_preconditions(best_node->parent_->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);     
+                                }else {
+                                    temp_goal = check_sketches_goals(best_node->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);
+                                    temp_pre = check_sketches_preconditions(best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);
+                                
+                                }
                             }
+                          
                             std::cout << "----------------------------------------------------- " << std::endl;
                             //reseting best_node variables
+                            if(best_node->node_ykeyt != temp_ykeyt || best_node->node_bkeyt != temp_bkeyt || best_node->node_yswrt != temp_yswrt || best_node->node_chalicet != temp_chalicet || best_node->node_ydragon != temp_ydragon || best_node->node_gdragon != temp_gdragon || best_node->node_Last_room_color != last_room_color) {
+                                std::cout << "touching variables changed" << std::endl;
+                            }
                             best_node->node_ykeyt = temp_ykeyt;
                             best_node->node_bkeyt = temp_bkeyt;
                             best_node->node_yswrt = temp_yswrt;
@@ -262,14 +270,12 @@ struct BfsIW : SimPlanner {
                             best_node->node_ydragon = temp_ydragon;
                             best_node->node_gdragon = temp_gdragon;
                             best_node->node_Last_room_color = last_room_color;
+                            
                         }
                         debug_time_stop = Utils::read_time_in_seconds() - debug_time;
                 }else{
-                    std::cout << "fulfillment branch is empty, doing 10 random actions" << std::endl;
-                    for(int i = 0; i < 10; ++i) {
-                        ale::Action action = action_set_[rand() % action_set_.size()];
-                        branch.push_back(action);
-                    }
+                    std::cout << "fulfillment branch is empty, falling back" << std::endl;
+                    root->best_sketch_branch(branch, root->pre, depth_to_search, discount_, priority_,action_nr);
 
                 }
                 /*
@@ -299,6 +305,13 @@ struct BfsIW : SimPlanner {
             }
             //clearing fulfillment branch
             fulfillment_branch_.clear();
+            if(transition_printing_debug){
+                  std::cout << "distance to items: ykey: best node = " << ykey_dist(best_node->screen_pixels_)  << " root= " << ykey_dist(root->screen_pixels_)
+                                      << " ysword: best node = " << ysword_dist(best_node->screen_pixels_) << " root= " << ysword_dist(root->screen_pixels_)
+                                      << " bkey: best node = " << bkey_dist(best_node->screen_pixels_) << " root= " << bkey_dist(root->screen_pixels_)
+                                      << " chalice: best node = " << chalice_dist(best_node->screen_pixels_) << " root= " << chalice_dist(root->screen_pixels_)
+                                      << std::endl;
+            }
             // make sure states along branch exist (only needed when doing partial caching)
             generate_states_along_branch(root, branch, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
 
@@ -334,6 +347,7 @@ struct BfsIW : SimPlanner {
 
     void bfs(const std::vector<Action> &prefix, Node *root, std::map<int, std::vector<int> > &novelty_table_map) const {
         // priority queue
+        if(transition_printing_debug) std::cout << "simulator calls: " << int(simulator_calls_) << " simulator budget: " << simulator_budget_ << std::endl;
         NodeComparator cmp(break_ties_using_rewards_);
         std::priority_queue<Node*, std::vector<Node*>, NodeComparator> q(cmp);
 

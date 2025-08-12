@@ -302,7 +302,7 @@ int main(int argc, char **argv) {
       // options for online execution
       ("initial-random-noops", po::value<int>(&opt_initial_random_noops)->default_value(30), "Set max number of initial noops, actual # is sampled (default is 30)")
       ("lookahead-caching", po::value<int>(&opt_lookahead_caching)->default_value(2), "Set lookahead caching: 0=none, 1=partial, 2=full (default is 2)")
-      ("simulator-budget", po::value<int>(&opt_simulator_budget)->default_value(150000),  "Set budget for #calls to simulator for online decision making (default is 150k)")
+      ("simulator-budget", po::value<int>(&opt_simulator_budget)->default_value(500000),  "Set budget for #calls to simulator for online decision making (default is 150k)")
       //500000 150000
       ("time-budget", po::value<float>(&opt_time_budget)->default_value(numeric_limits<float>::infinity()), "Set time budget for online decision making (default is infinite)")
       ("execute-single-action", "Execute only one action from best branch in lookahead (default is to execute prefix until first reward)")
