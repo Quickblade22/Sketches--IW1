@@ -213,6 +213,7 @@ struct BfsIW : SimPlanner {
                 // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
                  //trial using fulfillment branch
                 if(printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
+                
                 if(!fulfillment_branch_.empty()) {
                      branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
                      if(transition_printing_debug) {
@@ -220,6 +221,20 @@ struct BfsIW : SimPlanner {
                             std::cout << "Action in fulfillment branch: "; 
                             for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
                             std::cout  << std::endl;
+                            if(best_node->node_ydragon) {
+                                std::cout << "Best node is ydragon, printing screen from current node until root node/node where ydragon true " << std::endl;
+                                auto temp_node = best_node->parent_;
+                                int i = 1; 
+                                while(temp_node != nullptr && temp_node != root ) {
+                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and ydragon is " << temp_node->node_ydragon  << std::endl;
+                                    if(temp_node->node_ydragon) {
+                                        std::cout << "Found ydragon at depth " << i << std::endl;
+                                        printing_screen(temp_node->screen_pixels_);
+                                    }
+                                    temp_node = temp_node->parent_;
+                                    ++i;
+                                }
+                            }
                             bool temp_before =  best_node->node_yswrt;
                             if(temp_before && transition_printing_debug) {
                                 std::cout << "father_node is " << 
@@ -243,6 +258,8 @@ struct BfsIW : SimPlanner {
                             std::cout<< "checking sketches preconditions and goals for best node: " << best_node->action_ << std::endl;
                             std::cout << "ykeyt: " << best_node->node_ykeyt <<  " parents_ykeyt: " << best_node->parent_->node_ykeyt
                                       << " yswrt: " << best_node->node_yswrt <<  " parents_yswrt: " << best_node->parent_->node_yswrt
+                                      <<  " ydragon" << best_node->node_ydragon << " parents: " <<  best_node->parent_->node_ydragon
+                                      <<  " gdragon" << best_node->node_gdragon << " parents: " <<  best_node->parent_->node_gdragon
                                       << " last_room_color: " << best_node->node_Last_room_color    << std::endl;
                             bool trial_debug = true;
                             bool recompute = true; 

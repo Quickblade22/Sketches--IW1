@@ -69,6 +69,7 @@ class Node {
         first_child_(nullptr),
         sibling_(nullptr),
         parent_(parent) {
+        //eventually get rid of it 
         grandfather = (parent != nullptr) ? parent->parent_ : nullptr;
         node_bkeyt = (parent != nullptr) ? parent->node_bkeyt: false;
         node_ykeyt = (parent != nullptr) ? parent->node_ykeyt: false;

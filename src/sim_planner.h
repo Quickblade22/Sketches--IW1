@@ -17,6 +17,11 @@
 #include "utils.h"
 #include "/usr/local/include/ale/ale_interface.hpp"
 using namespace ale;
+struct RoomData {
+    std::string name;
+    std::pair<int, int> cube_position;
+    std::vector<pixel_t> screen_pixels;
+};
 struct SimPlanner;
 struct Sketch {
     std::function<bool(const SimPlanner&, const std::vector<pixel_t>&,const std::vector<pixel_t>&)> precondition;
@@ -84,6 +89,7 @@ struct SimPlanner : Planner {
         }
         reset_game(sim_);
         get_state(sim_, initial_sim_state_);
+        load_database("Database.txt");
         priority_ = 0; 
         //MyALEScreen screen(sim_, 3, &initial_screen_pixels_);
     }
@@ -407,7 +413,7 @@ struct SimPlanner : Planner {
         {"gdragon", 147},
         {"ydragon", 193}
         };
-
+    mutable std::map<int, RoomData> room_database_;     
     const int adventure_cube_width = 4; // Width of the adventure cube in pixels
     const int adventure_cube_height = 8; // Height of the adventure cube in pixels
     mutable int count =0 ; 
@@ -459,7 +465,7 @@ struct SimPlanner : Planner {
     }
     return count >= 2;
 }
-    int calculate_distance_from_goal(const std::vector<pixel_t>& screen_pixels) const {
+    void calculate_distance_from_goal(const std::vector<pixel_t>& screen_pixels) const {
         pixel_t current_room_color = screen_pixels[SCREEN_WIDTH * 5 + 5]; 
        
         pixel_t special_yellow_case = screen_pixels[SCREEN_WIDTH * 80 + 80]; //82 80
@@ -496,7 +502,7 @@ struct SimPlanner : Planner {
              if (printing_debug)std::cout << "Unknown room color: " << static_cast<int>(current_room_color) << std::endl;
             Last_room_color = -1; // Reset to unknown if color does not match any known col
         }
-        return Last_room_color;
+       // return Last_room_color;
     }
     
     std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions_for_cube(const std::vector<pixel_t>& screen_pixels) const {
@@ -536,6 +542,7 @@ struct SimPlanner : Planner {
 
         if(is_black){
             // Black throne room
+                Last_room_color = 11; 
                 regions.push_back({{7, 18}, {40, 178}});
                 regions.push_back({{119, 18}, {151, 178}});
                 regions.push_back({{7, 82}, {47, 178}});
@@ -545,6 +552,7 @@ struct SimPlanner : Planner {
                 regions.push_back({{71, 114}, {88, 154}}); //door
         } else if (is_yellow && color_match_at(80, 80, "yellow")) {
                 // Yellow throne room
+                Last_room_color = 1; // Set Last_room_color to 0 for yellow throne room
                 regions.push_back({{7, 18}, {40, 178}});
                 regions.push_back({{119, 18}, {152, 178}});
                 regions.push_back({{7, 82}, {48, 146}});
@@ -554,16 +562,30 @@ struct SimPlanner : Planner {
                 //std::cout<<"yellow_throne_room"<<std::endl; 
         } else if(is_yellow) {
                 // Normal yellow/black room
+                Last_room_color = 0; // Set Last_room_color to 1 for normal yellow room
                 regions.push_back({{7, 18}, {152, 179}});
         }else if (is_red || is_pink) {
+            if(is_pink) Last_room_color = 13; // Set Last_room_color to 9 for normal pink room
+            else {
+                if (Last_room_color == 3) {
+                    Last_room_color = 4; // Special case for red in the yellow room
+                } else if (Last_room_color == 11 || Last_room_color == 13) {
+                    Last_room_color = 12; // Special case for red in the purple room
+                
+            }
+            } // Set Last_room_color to 4 for normal red room
             regions.push_back({{7, 18}, {152, 179}});
         } 
         else if (is_green || is_light_green || is_purple) {
+
             if (is_light_green) {
+                Last_room_color = 5; // Set Last_room_color to 4 for normal light green room
                 regions.push_back({{12, 18}, {160, 178}});  // x >= 12
             } else if (is_purple) {
+                Last_room_color = 3; // Set Last_room_color to 3 for normal purple room
                 regions.push_back({{0, 18}, {147, 178}});   // x <= 147
             }else{
+                Last_room_color = 2; // Set Last_room_color to 2 for normal green room
                 regions.push_back({{0, 18}, {160, 178}});
             }
         } 
@@ -572,22 +594,46 @@ struct SimPlanner : Planner {
             // Determine blue room type
             if (color_match_at(79, 6, "blue")) {
                 // Blue room 1
-                regions.push_back({{0, 19}, {24, 50}});
-                regions.push_back({{134, 19}, {160, 50}});
-                regions.push_back({{15, 50}, {24, 83}});
-                regions.push_back({{135, 50}, {144, 83}});
-                regions.push_back({{0, 83}, {24, 114}});
-                regions.push_back({{31, 1}, {40, 178}});
-                regions.push_back({{119, 1}, {128, 178}});
-                regions.push_back({{0, 148}, {160, 178}});
-                regions.push_back({{47, 1}, {55, 114}});
-                regions.push_back({{103, 1}, {112, 114}});
-                regions.push_back({{47, 83}, {111, 114}});
-                regions.push_back({{63, 1}, {72, 50}});
-                regions.push_back({{87, 1}, {96, 50}});
-                regions.push_back({{63, 18}, {96, 50}});
+                if (color_match_at(79, 194, "blue")) {
+                    Last_room_color = 10; 
+                    regions.push_back({{0, 18}, {160, 50}});       // Top-left
+                    regions.push_back({{38, 18}, {48, 114}});      // Top-right
+                    regions.push_back({{111, 18}, {120, 114}});    // Upper-left
+                    regions.push_back({{15, 82}, {72, 115}});      // Upper-right
+                    regions.push_back({{87, 82}, {144, 115}});     // Upper-right
+                    regions.push_back({{15, 82}, {24, 179}});      // Upper-right
+                    regions.push_back({{135, 82}, {144, 179}});    // Upper-right
+                    regions.push_back({{135, 146}, {160, 179}});   // Upper-right
+                    regions.push_back({{0, 146}, {24, 179}});      // Upper-right
+                    regions.push_back({{103, 146}, {128, 179}});   // Upper-right
+                    regions.push_back({{31, 146}, {56, 179}});     // Upper-right
+                    regions.push_back({{31, 146}, {40, 194}});     // Upper-right
+                    regions.push_back({{47, 146}, {56, 194}});     // Upper-right
+                    regions.push_back({{103, 146}, {112, 194}});   // Upper-right
+                    regions.push_back({{119, 146}, {127, 194}});   // Upper-right
+                    regions.push_back({{63, 82}, {72, 195}});      // Upper-right
+                    regions.push_back({{87, 82}, {96, 195}});      // Upper-right
+                } else {
+                    Last_room_color = 6; 
+                    regions.push_back({{0, 19}, {24, 50}});
+                    regions.push_back({{134, 19}, {160, 50}});
+                    regions.push_back({{15, 50}, {24, 83}});
+                    regions.push_back({{135, 50}, {144, 83}});
+                    regions.push_back({{0, 83}, {24, 114}});
+                    regions.push_back({{31, 1}, {40, 178}});
+                    regions.push_back({{119, 1}, {128, 178}});
+                    regions.push_back({{0, 148}, {160, 178}});
+                    regions.push_back({{47, 1}, {55, 114}});
+                    regions.push_back({{103, 1}, {112, 114}});
+                    regions.push_back({{47, 83}, {111, 114}});
+                    regions.push_back({{63, 1}, {72, 50}});
+                    regions.push_back({{87, 1}, {96, 50}});
+                    regions.push_back({{63, 18}, {96, 50}});
+                }
+                
             } 
             else if (color_match_at(77, 185, "blue")) {
+                Last_room_color = 7; 
                 // Blue room 4
                 regions.push_back({{0, 146}, {23, 178}});
                 regions.push_back({{135, 146}, {160, 178}});
@@ -605,6 +651,7 @@ struct SimPlanner : Planner {
                 regions.push_back({{31, 19}, {56, 50}});
             } 
             else if (color_match_at(20, 8, "blue")) {
+                Last_room_color = 8; 
                 // Blue room 3
                 regions.push_back({{0, 19}, {31, 50}});
                 regions.push_back({{128, 19}, {160, 50}});
@@ -624,6 +671,7 @@ struct SimPlanner : Planner {
                 regions.push_back({{39, 82}, {120, 114}});
             } 
             else {
+                Last_room_color = 9; 
                 // Replace blue room type 2 region definitions with:
                 regions.push_back({{15, 1}, {23, 50}});
                 regions.push_back({{135, 1}, {143, 50}});
@@ -654,7 +702,7 @@ struct SimPlanner : Planner {
         }
 
         
-
+        //calculate_distance_from_goal(screen_pixels); // Update Last_room_color based on current screen pixels
         return regions;
     }
     void printing_screen(const std::vector<pixel_t>& screen_pixels) const {
@@ -677,8 +725,8 @@ struct SimPlanner : Planner {
             return (left || right) && ( up || down); 
         }
         
-    std::pair<int,int> find_cube_without_reference(const std::vector<pixel_t>& current) const{
-        std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions = regions_for_cube(current);
+    std::pair<int,int> find_cube_without_reference(const std::vector<pixel_t>& current,   std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions) const{
+        
         std::pair<int,int> cube_position = {-1, -1}; // Default position if no cube is found
         for (const auto& region : regions) {
             int x1 = region.first.first;
@@ -693,6 +741,171 @@ struct SimPlanner : Planner {
         }
         return cube_position; // Return the default position if no cube is found
     }
+    void load_database(const std::string& filename) const {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "Warning: Could not open database file: " << filename << std::endl;
+            return;
+        }
+
+        std::string line;
+        RoomData current_room;
+        int line_count = 0;
+        int expected_lines = SCREEN_HEIGHT;
+        bool reading_pixels = false;
+        int current_room_num = -1;
+
+        while (std::getline(file, line)) {
+            if (line.empty()) continue;
+
+            // Room header: [Room Name]
+            if (line[0] == '[') {
+                if (reading_pixels) {
+                    if (current_room_num != -1) {
+                        room_database_[current_room_num] = current_room;
+                    }
+                    reading_pixels = false;
+                }
+                current_room = RoomData();
+                current_room.name = line.substr(1, line.find(']') - 1);
+                current_room_num = -1;
+                continue;
+            }
+
+            // Room number line: "room_number: 11"
+            if (line.find("room_number:") != std::string::npos) {
+                size_t colon_pos = line.find(':');
+                std::string num_str = line.substr(colon_pos + 1);
+                // Trim whitespace
+                num_str.erase(0, num_str.find_first_not_of(" \t"));
+                num_str.erase(num_str.find_last_not_of(" \t") + 1);
+                current_room_num = std::stoi(num_str);
+                continue;
+            }
+
+            // Cube position line: "cube_position: 79,170"
+            if (line.find("cube_position:") != std::string::npos) {
+                size_t colon_pos = line.find(':');
+                std::string pos_str = line.substr(colon_pos + 1);
+                // Trim whitespace
+                pos_str.erase(0, pos_str.find_first_not_of(" \t"));
+                pos_str.erase(pos_str.find_last_not_of(" \t") + 1);
+                size_t comma_pos = pos_str.find(',');
+                int x = std::stoi(pos_str.substr(0, comma_pos));
+                int y = std::stoi(pos_str.substr(comma_pos + 1));
+                current_room.cube_position = {x, y};
+                current_room.screen_pixels.clear();
+                reading_pixels = true;
+                line_count = 0;
+                continue;
+            }
+
+            // Pixel data
+            if (reading_pixels && line_count < expected_lines) {
+                std::istringstream iss(line);
+                int pixel_val;
+                for (int i = 0; i < SCREEN_WIDTH; ++i) {
+                    if (iss >> pixel_val) {
+                        current_room.screen_pixels.push_back(static_cast<pixel_t>(pixel_val));
+                    }
+                }
+                line_count++;
+                if (line_count == expected_lines && current_room_num != -1) {
+                    room_database_[current_room_num] = current_room;
+                    reading_pixels = false;
+                }
+            }
+        }
+        // Save last room if needed
+        if (reading_pixels && current_room_num != -1 && line_count == expected_lines) {
+            room_database_[current_room_num] = current_room;
+        }
+    }
+    std::pair<int, int> find_cube_using_database_comparison(const std::vector<pixel_t>& scene_img) const {
+        auto trial = regions_for_cube(scene_img); 
+        int room_num = Last_room_color; // Use Last_room_color as room number
+        auto it = room_database_.find(room_num);
+        if (it == room_database_.end()) {
+            return {-1, -1};  // Room not in database
+        }
+
+        const RoomData& room_data = it->second;
+        const std::vector<pixel_t>& db_img = room_data.screen_pixels;
+        const auto& db_cube_pos = room_data.cube_position;
+
+        // Collect candidate pixels: non-grey in scene but grey in DB
+        std::set<std::pair<int, int>> candidate_pixels;
+        for (int y = 0; y < SCREEN_HEIGHT; ++y) {
+            for (int x = 0; x < SCREEN_WIDTH; ++x) {
+                size_t idx = y * SCREEN_WIDTH + x;
+                if (is_grey(db_img[idx]) && !is_grey(scene_img[idx])) {
+                    candidate_pixels.insert({x, y});
+                }
+            }
+        }
+
+        // Also check around DB cube position
+        pixel_t cube_color_db = db_img[db_cube_pos.second * SCREEN_WIDTH + db_cube_pos.first];
+        for (int dy = -1; dy <= adventure_cube_height; ++dy) {
+            for (int dx = -1; dx <= adventure_cube_width; ++dx) {
+                int x = db_cube_pos.first + dx;
+                int y = db_cube_pos.second + dy;
+                if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) continue;
+                size_t idx = y * SCREEN_WIDTH + x;
+                if (color_match(db_img[idx], cube_color_db) && !is_grey(scene_img[idx])) {
+                    candidate_pixels.insert({x, y});
+                }
+            }
+        }
+
+        // Cluster candidate pixels
+        auto clusters = cluster_pixels(candidate_pixels, scene_img);
+        std::vector<std::set<std::pair<int, int>>> cube_clusters;
+        for (const auto& cluster : clusters) {
+            size_t size = cluster.size();
+            if (size >= adventure_cube_width * adventure_cube_height * 0.7 && 
+                size <= adventure_cube_width * adventure_cube_height) {
+                cube_clusters.push_back(cluster);
+            }
+        }
+
+        // Select best cluster (closest to DB cube position)
+        if (cube_clusters.empty()) return {-1, -1};
+        if (cube_clusters.size() == 1) {
+            const auto& cluster = cube_clusters[0];
+            int min_x = SCREEN_WIDTH, min_y = SCREEN_HEIGHT;
+            for (const auto& pt : cluster) {
+                if (pt.first < min_x) min_x = pt.first;
+                if (pt.second < min_y) min_y = pt.second;
+            }
+            return {min_x, min_y};
+        } else {
+            int best_index = -1;
+            float min_dist = std::numeric_limits<float>::max();
+            for (size_t i = 0; i < cube_clusters.size(); ++i) {
+                int sum_x = 0, sum_y = 0;
+                for (const auto& pt : cube_clusters[i]) {
+                    sum_x += pt.first;
+                    sum_y += pt.second;
+                }
+                int center_x = sum_x / cube_clusters[i].size();
+                int center_y = sum_y / cube_clusters[i].size();
+                float dist = std::hypot(center_x - db_cube_pos.first, center_y - db_cube_pos.second);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    best_index = i;
+                }
+            }
+            const auto& cluster = cube_clusters[best_index];
+            int min_x = SCREEN_WIDTH, min_y = SCREEN_HEIGHT;
+            for (const auto& pt : cluster) {
+                if (pt.first < min_x) min_x = pt.first;
+                if (pt.second < min_y) min_y = pt.second;
+            }
+            return {min_x, min_y};
+        }
+    }
+    
     int count_matching_pixels(const std::vector<pixel_t>& screen_pixels, int x, int y, pixel_t cube_color) const {
         int count = 0;
         for (int dy = 0; dy < adventure_cube_height; ++dy) {
@@ -776,13 +989,20 @@ struct SimPlanner : Planner {
     
     std::pair<int,int> highlight_cube(const std::vector<pixel_t>& current, const std::vector<pixel_t>& prev  )  const{
         std::pair<int,int> temp = {-1,-1};
-        temp = find_cube_without_reference(current); 
-        
+        std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions = regions_for_cube(current);
+        if(Last_room_color >= 6 && Last_room_color <= 10) {
+            std::cout<< "using database" << std::endl;
+            temp = find_cube_using_database_comparison(current);  //for the blue room use 
+            if (temp.first != -1) temp = find_cube_without_reference(current, regions); 
+        }else{
+              temp = find_cube_without_reference(current, regions); 
+               //if (temp.first != -1) temp = find_cube_using_database_comparison(current);  
+        }
         return temp;
     }
         // Helper function to get cube center coordinates
     std::pair<int, int> get_cube_center(const std::vector<pixel_t>& screen_pixels) const {
-        auto cube_coords = find_cube_without_reference(screen_pixels);
+        auto cube_coords = highlight_cube(screen_pixels, screen_pixels);
         if (cube_coords.first == -1) return {-1, -1};
         return {
             cube_coords.first + adventure_cube_width / 2,
@@ -963,7 +1183,7 @@ struct SimPlanner : Planner {
     std::vector<std::pair<std::string, std::pair<int, int>>> detect_items_entire_screen(const std::vector<pixel_t>& screen_pixels) const {
         std::vector<std::pair<std::string, std::pair<int, int>>> detected_items;
         auto regions = regions_for_cube(screen_pixels);
-        auto cube_coords = find_cube_without_reference(screen_pixels);
+        auto cube_coords = highlight_cube(screen_pixels, screen_pixels);
 
         // Collect candidate pixels (non-grey) in entire screen
         std::set<std::pair<int, int>> candidates;
@@ -1100,7 +1320,7 @@ struct SimPlanner : Planner {
         return items;
     }
     
-    std::vector<std::set<std::pair<int, int>>> dragon_helper_function(const std::vector<pixel_t>& screen_pixels) const {
+    std::vector<std::set<std::pair<int, int>>> dragon_helper_function(const std::vector<pixel_t>& screen_pixels, bool printing = false) const {
        auto regions = regions_for_cube(screen_pixels);
         //update needed
         auto cube_coords = highlight_cube(screen_pixels,screen_pixels);
@@ -1147,7 +1367,8 @@ struct SimPlanner : Planner {
         
         // Cluster and analyze
         auto clusters = cluster_pixels(candidates, screen_pixels);
-        if(printing_debug) std::cout<<"cluster size" << clusters.size(); 
+        if(printing_debug||printing) std::cout<<"cluster size" << clusters.size(); 
+       
         // NEW: Filter clusters  using item centroids
         std::set<std::pair<int, int>> exclusion_centroids;
         for (const auto& item : all_items) {
@@ -1156,40 +1377,54 @@ struct SimPlanner : Planner {
         auto filtered_clusters = clusters; 
         if(printing_debug) std::cout<< "the size of exlcusion points" << exclusion_centroids.size();
         if(!exclusion_centroids.empty())  filtered_clusters = filter_clusters_by_exclusion_points(clusters, exclusion_centroids);
+         if(printing){
+            for(auto c: clusters) {
+                auto first_pixel = *c.begin();
+                pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
+                bool is_excluded = std::find(filtered_clusters.begin(), filtered_clusters.end(), c) != filtered_clusters.end();
+                std::cout << "Cluster size: " << c.size() << " color: " << static_cast<int>(color) << " in filtered: " << is_excluded << std::endl;
+                std::cout << std::endl;
+            }
+        }
         return filtered_clusters;
     }
     // Dragon detection function
-    void detect_dragons(const std::vector<pixel_t>& screen_pixels, std::string dragon_type) const {
-        auto filtered_clusters = dragon_helper_function(screen_pixels);
-        if(printing_debug) std::cout<<"cluster size after filtering" << filtered_clusters.size(); 
+    void detect_dragons(const std::vector<pixel_t>& screen_pixels, std::string dragon_type, bool printing = false) const {
+        auto filtered_clusters = dragon_helper_function(screen_pixels, printing);
+        if(printing_debug|| printing) std::cout<<"cluster size after filtering" << filtered_clusters.size() << std::endl; 
         for (const auto& cluster : filtered_clusters) {
+            if(printing) std::cout << "filtered cluster with size: " << cluster.size() << std::endl;
             if (cluster.size() < 140 || cluster.size() >= 180) continue; // Dragon size threshold
-            
             auto first_pixel = *cluster.begin();
             pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
             
             std::string dragon_types;
             if (dragon_type == "gdragon" && color_match(color, COLORS.at("gdragon"))) {
                 dragon_types = "gdragon";
+                if(printing) std::cout << "Detected " << dragon_types << " with color: " << static_cast<int>(color) << std::endl;
             } else if (dragon_type == "ydragon" && color_match(color, COLORS.at("ydragon"))) {
                 dragon_types = "ydragon";
+                if(printing) std::cout << "Detected " << dragon_types << " with color: " << static_cast<int>(color) << std::endl;
             } else {
                 continue;
             }
             
             // Determine state by size
             size_t size = cluster.size();
-            if (size >= 140 && size <= 160) {
-                if(printing_debug) std::cout<< " Dragon dead detected";
+            //changed 160 --> 141
+            if (size >= 140 && size <= 141) {
+                if(printing_debug||printing) std::cout<< " Dragon dead detected";
                 // Dragon is dead
                 if (dragon_types == "gdragon" && !gdragon){
                     gdragon = true;
                 } else if (dragon_types == "ydragon" && !ydragon) {
+                    //std::cout<< " ydragon is dead, cause found cluster" << cluster.size() << " with color" << static_cast<int>(color) << " at node: " << current_node->action_ << std::endl;
                     ydragon = true;
                 }
-            } else if (size >= 165 && size < 180) {
+            } else if (size >= 142 && size < 180) {
                 // Dragon is alive
-                 if(printing_debug) std::cout<< " Dragon alive detected";
+                
+                if(printing_debug||printing) std::cout<< " Dragon alive detected";
                 if (dragon_types == "gdragon" && gdragon) {
                     gdragon = false;
                 } else if (dragon_types == "ydragon" && ydragon) {
@@ -1218,22 +1453,24 @@ struct SimPlanner : Planner {
         return false; // No dragon detected
     }
     // Dragon state functions
-    bool ydragon_killed(const std::vector<pixel_t>& screen_pixels) const {
+    bool ydragon_killed(const std::vector<pixel_t>& screen_pixels, bool printing = false) const {
+        if(printing) std::cout << "ydragon function called" << std::endl; 
         if(ydragon) return true; 
-        detect_dragons(screen_pixels, "ydragon");
+        if(printing) std::cout << "ydragon detecte dragons called" << std::endl; 
+        detect_dragons(screen_pixels, "ydragon", printing);
         return ydragon;
     }
-    
-    bool gdragon_killed(const std::vector<pixel_t>& screen_pixels) const {
+
+    bool gdragon_killed(const std::vector<pixel_t>& screen_pixels, bool printing = false) const {
          if(gdragon) return true;
-        detect_dragons(screen_pixels, "gdragon");
+        detect_dragons(screen_pixels, "gdragon", printing);
         return gdragon;
     }
     // Item distance function (MANHATTAN)
     int get_item_distance(const std::string& item_type, const std::vector<pixel_t>& screen_pixels) const 
     {
         const int MAX_DISTANCE = -1;
-        auto cube_coords = find_cube_without_reference(screen_pixels);
+        auto cube_coords = highlight_cube(screen_pixels, screen_pixels);
         if (cube_coords.first == -1) return MAX_DISTANCE;
         std::pair<int,int> temp = get_cube_center(screen_pixels);    
         // Check entire screen
@@ -1311,7 +1548,36 @@ struct SimPlanner : Planner {
     int chalice_dist(const std::vector<pixel_t>& screen_pixels) const {
         return get_item_distance( "chalice", screen_pixels); 
     }
-    
+    int sword_dist_to_ydragon(const std::vector<pixel_t>& screen_pixels) const {
+        //get sword coordinates
+       auto items = detect_items_entire_screen(screen_pixels);
+       std::pair<int, int> sword = {-1, -1};
+       for(auto item: items) {
+           if(item.first == "yellow_sword") {
+               sword = item.second; 
+               break; 
+           }
+       }
+
+       if(sword.first == -1 || sword.second == -1) return -1;
+       //get ydragon coord
+       std::pair<int, int> ydragon_location = {-1, -1};
+       auto dragons = dragon_helper_function(screen_pixels);
+       bool found = false; 
+       for (const auto& cluster : dragons) {
+           ydragon_location = *cluster.begin();
+           pixel_t color = screen_pixels[ydragon_location.second * SCREEN_WIDTH + ydragon_location.first];
+           // Determine state by size
+           size_t size = cluster.size();
+           if (size >= 142 && size < 180 && color == COLORS.at("ydragon")) {
+               // Dragon is alive
+               found = true; 
+               break;
+           }
+       }
+       if(ydragon_location.first == -1 || ydragon_location.second == -1 || !found) return -1;
+       return manhattan_dist(sword.first, sword.second, ydragon_location.first, ydragon_location.second);
+    }
     // Distance to navigation points (MANHATTAN)
     int dist_to_nav1(const std::vector<pixel_t>& screen_pixels) const {
         auto center = get_cube_center(screen_pixels);
@@ -1322,7 +1588,7 @@ struct SimPlanner : Planner {
     }
 
     int dist_to_nav2(const std::vector<pixel_t>& screen_pixels) const {
-        auto center = find_cube_without_reference(screen_pixels);
+        auto center = highlight_cube(screen_pixels, screen_pixels);
         if (center.first == -1) return -1;
         int dist = manhattan_dist(center.first,center.second,80,128);
         return dist;
@@ -1443,7 +1709,8 @@ struct SimPlanner : Planner {
     }
     
     bool door_open(const std::vector<pixel_t>& screen_pixels) const {
-     int D = calculate_distance_from_goal(screen_pixels);
+     //calculate_distance_from_goal(screen_pixels);
+     int D = Last_room_color;
      if(D != 1 || D != 7) return false;
      int count = 0; 
      for(int y = 126; y <= 146; ++y) {
@@ -1548,8 +1815,8 @@ struct SimPlanner : Planner {
                     adjacent_count++;
                 }
             }
-            //changed 2 -->1
-            if (adjacent_count >= 2) filtered_clusters.push_back(cluster);
+            //changed  (sofar 2 now 3)
+            if (adjacent_count >= 3) filtered_clusters.push_back(cluster);
         }
         
         if(printing){
@@ -1640,6 +1907,9 @@ struct SimPlanner : Planner {
         bkeyt = false;
         yswrt = false;
         chalicet = false;
+        ydragon = false;
+        gdragon = false;
+        Last_room_color = -1;
     }
     void set_item_state(Node* node, bool printing = false) const {
         
@@ -1746,11 +2016,12 @@ struct SimPlanner : Planner {
         // Sketch 0: Acquire yellow key
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                //int D = planner.calculate_distance_from_goal(curr);
+             ////planner.calculate_distance_from_goal(curr);
                 if(printing_sketches_) std::cout << "SKETCH 0 PRE Computation " << std::endl;
                 bool key = planner.ykey(curr,prev,planner.printing_sketches_functions); 
                 bool room = planner.ykeyr(curr);
                 bool sword_room = planner.yswr(curr);
+                
                 bool cond =  (!key && room && !sword_room )  ;  //D == 1 &&
                 if(printing_sketches_){
                 std::cout<< std::endl; 
@@ -1765,6 +2036,7 @@ struct SimPlanner : Planner {
                 if(printing_sketches_) std::cout << "SKETCH 0 GOAL Computation " << std::endl;
                 bool key = planner.ykey(curr,prev, planner.printing_sketches_functions);
                 bool goal_achieved =  key; //&& D==1;
+                ////planner.calculate_distance_from_goal(curr);
                 if(printing_sketches_){
                 std::cout << "SKETCH 0 GOAL: " << (goal_achieved ? "ACHIEVED" : "IN PROGRESS")
                         << " | ykey=" << key 
@@ -1782,7 +2054,7 @@ struct SimPlanner : Planner {
                 if(printing_sketches_) std::cout << "SKETCH 1 PRE Computation " << std::endl;
                 
                 bool key = planner.ykey(curr,prev,planner.printing_sketches_functions);
-                //int D = planner.calculate_distance_from_goal(curr);
+                //planner.calculate_distance_from_goal(curr);
                 bool room = planner.yswr(curr);
                 bool cond =  key &&  !room; //D == 1  &&
                 if(printing_sketches_){
@@ -1796,7 +2068,8 @@ struct SimPlanner : Planner {
                 if(printing_sketches_) std::cout << "SKETCH 1 GOAL Computation " << std::endl;
                 bool key = planner.ykey(curr,prev,planner.printing_sketches_functions);
                 bool room = planner.yswr(curr);
-                bool goal_achieved =  room && key; ;
+                //planner.calculate_distance_from_goal(curr);
+                bool goal_achieved =  room && key; 
                 if(printing_sketches_){
                 std::cout << "SKETCH 1 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") << " | yswr=" << room << " | ykey=" << key
                         << std::endl;
@@ -1805,7 +2078,7 @@ struct SimPlanner : Planner {
             },
             "Reach yswr room"
         });
-         //drop ykey
+        /* //drop ykey
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
                  if(printing_sketches_) std::cout << "SKETCH 2 PRE Computation " << std::endl;
@@ -1835,7 +2108,7 @@ struct SimPlanner : Planner {
                 return goal_achieved;
             },
             "Drop yellow key"
-        });
+        });*/
         //move away from key and towards the sword
         /*sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
@@ -1885,30 +2158,33 @@ struct SimPlanner : Planner {
         //get ysword
          sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(printing_sketches_) std::cout << "SKETCH 4 PRE Computation " << std::endl;
-                bool key = planner.ykey(curr,prev,printing_sketches_);
-                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                if(printing_sketches_) std::cout << "SKETCH 2 PRE Computation " << std::endl;
+                bool key = planner.ykey(curr,prev,planner.printing_sketches_);
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
                 bool room = planner.yswr(curr);
-                int ysword_dist = planner.ysword_dist(curr);
-                int ykey_dist = planner.ykey_dist(curr);
-                bool closer = (ysword_dist > 0 && ykey_dist > 0 && ysword_dist < ykey_dist-25);
-                bool cond = room && !sword  && !key; //D == 1  &&
+                //planner.calculate_distance_from_goal(curr);
+                //int ysword_dist = planner.ysword_dist(curr);
+                //int ykey_dist = planner.ykey_dist(curr);
+                //bool closer = (ysword_dist > 0 && ykey_dist > 0 && ysword_dist < ykey_dist-25);
+                //changed !key --> key
+                bool cond = room && !sword  && key; //D == 1  &&
                 if(printing_sketches_){
-                std::cout << "SKETCH 4 PRE: (get ysword)" 
+                std::cout << "SKETCH 2 PRE: (get ysword)" 
                 << " | !ykey=" << !key << " | ysw room=" << room << " | !ysword=" << !sword
-                << " | ykey_dist = " << ykey_dist << " root_dist_to_sword = " << planner.root_dist_to_sword 
-                << " | ysword_dist = " << ysword_dist << " root_dist_to_key = " << planner.root_dist_to_key
+                //<< " | ykey_dist = " << ykey_dist << " root_dist_to_sword = " << planner.root_dist_to_sword 
+                //<< " | ysword_dist = " << ysword_dist << " root_dist_to_key = " << planner.root_dist_to_key
                 << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                if(printing_sketches_) std::cout << "SKETCH 3 GOAL Computation " << std::endl;
-                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                if(printing_sketches_) std::cout << "SKETCH 2 GOAL Computation " << std::endl;
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
+                //planner.calculate_distance_from_goal(curr);
                  //bool key = planner.ykey(curr,prev,printing_sketches_);
                 bool goal_achieved =  sword ; //&& !key; //&& D==1;
                 if(printing_sketches_){
-                std::cout << "SKETCH 4 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword
+                std::cout << "SKETCH 2 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword
                     << std::endl;
                 }
                 //if(goal_achieved) std::cout << "SKETCH 4 GOAL REACHED " << current_node->action_ << std::endl;
@@ -1917,51 +2193,65 @@ struct SimPlanner : Planner {
             },
             "Pick up yellow sword"
         });
-        
+        //reach dragon_room
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
-                if(printing_sketches_) std::cout << "SKETCH 5 PRE Computation " << std::endl;
-                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                if(printing_sketches_) std::cout << "SKETCH 3 PRE Computation " << std::endl;
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
+                //planner.calculate_distance_from_goal(curr);
                 bool ydrag_in_room = planner.ydragonr(curr);
                 bool cond = sword && !ydrag_in_room;
                 if(printing_sketches_){
-                std::cout << "SKETCH 6 PRE:" << " | ysword=" << sword << " | ydrag_in_room=" << ydrag_in_room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                std::cout << "SKETCH 3 PRE:" << " | ysword=" << sword << " | ydrag_in_room=" << ydrag_in_room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
-                if(printing_sketches_) std::cout << "SKETCH 5 GOAL Computation " << std::endl;
-               bool sword = planner.ysword(curr,prev,printing_sketches_);
+                if(printing_sketches_) std::cout << "SKETCH 3 GOAL Computation " << std::endl;
+                //planner.calculate_distance_from_goal(curr);
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
                 bool ydrag_in_room = planner.ydragonr(curr);
                 bool goal_achieved = sword && ydrag_in_room;
                 if(printing_sketches_){
-                std::cout << "SKETCH 6 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | ydragon_in room=" << ydrag_in_room << std::endl;
+                std::cout << "SKETCH 3 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | ydragon_in room=" << ydrag_in_room << std::endl;
                 }
+               
                 return goal_achieved;
             },
             "reach d"
         });
+        //kill dragon
         sketches_.push_back(Sketch{
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr) {
                 if(printing_sketches_) std::cout << "SKETCH 4 PRE Computation " << std::endl;
-                bool sword = planner.ysword(curr,prev,printing_sketches_);
-                bool ydrag = planner.ydragon_killed(curr);
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
+                bool ydrag = planner.ydragon_killed(curr,printing_sketches_);
                 bool ydrag_in_room = planner.ydragonr(curr);
                 bool cond = sword && !ydrag && ydrag_in_room;
+                //planner.calculate_distance_from_goal(curr);
                 if(printing_sketches_){
-                std::cout << "SKETCH 5 PRE:" << " | ysword=" << sword << " | !ydrag=" << !ydrag << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                std::cout << "SKETCH 4 PRE:" << " | ysword=" << sword << " | !ydrag=" << !ydrag << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
+                
                 return cond;
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
                 if(printing_sketches_) std::cout << "SKETCH 4 GOAL Computation " << std::endl;
-                bool sword = planner.ysword(curr,prev,printing_sketches_);
-                bool ydrag = planner.ydragon_killed(curr);
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
+                bool ydrag = planner.ydragon_killed(curr,printing_sketches_);
                 bool ydrag_in_room = planner.ydragonr(curr);
-                bool goal_achieved = sword && ydrag && ydrag_in_room;
+                //planner.calculate_distance_from_goal(curr);
+                int curr_dist = planner.sword_dist_to_ydragon(curr);
+                int prev_dist = planner.sword_dist_to_ydragon(prevs); 
+                bool dist = (curr_dist < prev_dist - 30 && curr_dist > 0 && prev_dist > 0);
+                bool kill_dragon = (ydrag || dist);
+                bool goal_achieved = sword && kill_dragon && ydrag_in_room;
                 if(printing_sketches_){
-                std::cout << "SKETCH 5 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | ydragon_killed=" 
-                << ydrag << " | ydragon_in_room=" << ydrag_in_room << std::endl;
+                std::cout << "SKETCH 4 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") 
+                <<  " | ysword=" << sword  
+                << " | ydragon_killed=" << ydrag 
+                << " | ydragon_distance=" << dist << " curr_dist=" << curr_dist << " prev_dist=" << prev_dist
+                << " | ydragon_in_room=" << ydrag_in_room << std::endl;
                 }
                 return goal_achieved;
             },
