@@ -33,7 +33,8 @@ struct BfsIW : SimPlanner {
     int game; 
     mutable std::deque<Action> fulfillment_branch_;
     mutable  Node *best_node; 
-
+    mutable bool print = false; 
+    mutable bool gdragon_print_screen = false; 
     BfsIW(ALEInterface &sim,
           size_t frameskip,
           bool use_minimal_action_set,
@@ -207,6 +208,23 @@ struct BfsIW : SimPlanner {
             for(auto i: root->pre){
                 pres += static_cast<int>(i); 
             }
+           if(root->pre[4] && !print ) {
+                std::cout << " Killing ydragon active " << std::endl; 
+                printing_screen(root->screen_pixels_);
+                print = true;
+            }else if(print && !root->pre[4]) {
+                std::cout << " Killing ydragon inactive " << std::endl; 
+                printing_screen(root->screen_pixels_);
+            }
+            if(root->pre[6] && !gdragon_print_screen ) {
+                std::cout << " Killing gdragon active " << std::endl; 
+                printing_screen(root->screen_pixels_);
+                gdragon_print_screen = true;
+            }else if(gdragon_print_screen && !root->pre[6]) {
+                std::cout << " Killing gdragon inactive " << std::endl; 
+                printing_screen(root->screen_pixels_);
+            }
+           
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
             if( pres != 0 ) {
                 if(transition_printing_debug)   std::cout << "sketches exploitation with depth lookahead" << std::endl;
