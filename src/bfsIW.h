@@ -210,7 +210,7 @@ struct BfsIW : SimPlanner {
             }
            if(root->pre[4] && !print ) {
                 std::cout << " Killing ydragon active " << std::endl; 
-                printing_screen(root->screen_pixels_);
+                //printing_screen(root->screen_pixels_);
                 print = true;
             }else if(print && !root->pre[4]) {
                 std::cout << " Killing ydragon inactive " << std::endl; 
@@ -218,7 +218,7 @@ struct BfsIW : SimPlanner {
             }
             if(root->pre[6] && !gdragon_print_screen ) {
                 std::cout << " Killing gdragon active " << std::endl; 
-                printing_screen(root->screen_pixels_);
+                //printing_screen(root->screen_pixels_);
                 gdragon_print_screen = true;
             }else if(gdragon_print_screen && !root->pre[6]) {
                 std::cout << " Killing gdragon inactive " << std::endl; 
@@ -247,7 +247,7 @@ struct BfsIW : SimPlanner {
                                     std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and ydragon is " << temp_node->node_ydragon  << std::endl;
                                     if(temp_node->node_ydragon) {
                                         std::cout << "Found ydragon at depth " << i << std::endl;
-                                        printing_screen(temp_node->screen_pixels_);
+                                        //printing_screen(temp_node->screen_pixels_);
                                     }
                                     temp_node = temp_node->parent_;
                                     ++i;

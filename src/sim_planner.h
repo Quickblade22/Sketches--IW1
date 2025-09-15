@@ -450,7 +450,11 @@ struct SimPlanner : Planner {
             {193, 193, 193, 193, 193, 193, 193},
             {193, 193, 193, 193, 193, 193, 193},
             {193, 193, 193, 193, 193, 193, 193},
-            {193, 193, 193, 193, 193, 193, 193}
+            {193, 193, 193, 193, 193, 193, 193},
+            {170, 193, 193, 193, 193, 193, 170}, 
+            {170, 193, 193, 193, 193, 193, 170},
+            {170, 170, 193, 193, 193, 170, 170},
+            {170, 170, 193, 193, 193, 170, 170}
         };
         
     
@@ -1434,7 +1438,7 @@ struct SimPlanner : Planner {
         if(printing_debug|| printing) std::cout<<"cluster size after filtering" << filtered_clusters.size() << std::endl; 
         for (const auto& cluster : filtered_clusters) {
             if(printing) std::cout << "filtered cluster with size: " << cluster.size() << std::endl;
-            //changed 140 --> 100
+            //changed 140 --> 100-->103
             if (cluster.size() < 100 || cluster.size() >= 180) continue; // Dragon size threshold
             auto first_pixel = *cluster.begin();
             pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
@@ -1455,7 +1459,7 @@ struct SimPlanner : Planner {
             //tells us if dragon dead using pattern matching
             bool is_dead = check_dragon_pattern(screen_pixels, cluster, dragon_types);
             bool is_alive = check_dragon_pattern_alive(screen_pixels, cluster, dragon_types);
-            bool is_firing = check_dragon_pattern_firing(screen_pixels, cluster, dragon_types);
+            bool is_firing = check_dragon_pattern_firing(screen_pixels, cluster, dragon_types, printing);
             if(printing) std:: cout << " is_dead" << is_dead <<  " is_alive" << is_alive <<  " is_firing" << is_firing << std::endl;
              if(is_dead){
                 if(printing_debug||printing) std::cout<< " Dragon dead detected by pattern" << std::endl;
@@ -1504,14 +1508,13 @@ struct SimPlanner : Planner {
             size_t size = cluster.size();
             //check if dragon alive in room
             bool alive = check_dragon_pattern_alive(screen_pixels, cluster, dragon_type);
-            bool firing = check_dragon_pattern_firing(screen_pixels, cluster, dragon_type);
+            bool firing = check_dragon_pattern_firing(screen_pixels, cluster, dragon_type, printing);
             bool dead  = check_dragon_pattern(screen_pixels, cluster, dragon_type);
             bool coloring_true = (dragon_type == "gdragon" && color_match(color, COLORS.at("gdragon"))) || (dragon_type == "ydragon" && color_match(color, COLORS.at("ydragon")));
             if(printing) std:: cout << "detect_dragons_in_room:  Cluster size" << cluster.size() << " is_alive " << alive <<  " is_firing " << firing << " is_dead " << dead << std::endl;
             if(alive || firing || dead) return coloring_true;
             //changed: only alive dragon to all dragon dead, firing, alive --> changed 165 to 142 and addded second or clause 
-            //changed back 142 to 165
-            else if((size >= 165 && size < 180) ||(size >= 140 && size < 142) ) {
+            else if((size >= 142 && size < 180)  ) { //||(size >= 140 && size < 142)
                 //check if dragon type matches
                 if(printing_debug||printing) std::cout<< " Dragon detected by size" << std::endl;
                 return coloring_true;
@@ -1592,10 +1595,10 @@ struct SimPlanner : Planner {
         return false;
     }
  // Add this helper function to check for dragon patterns
-    bool check_dragon_pattern_firing(const std::vector<pixel_t>& screen_pixels, const std::set<std::pair<int, int>>& cluster, const std::string& dragon_type) const {
+    bool check_dragon_pattern_firing(const std::vector<pixel_t>& screen_pixels, const std::set<std::pair<int, int>>& cluster, const std::string& dragon_type, bool printing = false) const {
         // Pattern for alive yellow dragon
         //changed  pattern firing to pattern alive --> need to update pattern firing
-        auto pattern = pattern_alive;
+        auto pattern = pattern_firing;
         // Check pattern at various positions in the cluster
         for (const auto& pixel : cluster) {
             int x = pixel.first;
@@ -1622,14 +1625,17 @@ struct SimPlanner : Planner {
                 if(!match) break; 
                 
             }
+            //if(match)  printing_screen(screen_pixels);
             if(match) return true;
+            if(match && printing){
+                std::cout << "Firing dragon detected at " << x << " " << y << std::endl;
+                printing_screen(screen_pixels);
+            } 
         }
         
         return false;
     }
 
-   
-    
     bool ydragon_killed(const std::vector<pixel_t>& screen_pixels, bool printing = false) const {
         if(printing) std::cout << "ydragon function called" << std::endl; 
         if(ydragon) return true; 
@@ -2139,9 +2145,14 @@ struct SimPlanner : Planner {
         for (const auto& cluster : dragon_clusters) {
             auto first_pixel = *cluster.begin();
             pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
-            
+            //changed
+            bool size = (cluster.size() >= 142 && cluster.size() < 180); 
+            bool pattern_alive = check_dragon_pattern_alive(screen_pixels, cluster, "ydragon");
+            bool pattern_firing = check_dragon_pattern_firing(screen_pixels, cluster, "ydragon", printing);
+            bool pattern_dead = check_dragon_pattern(screen_pixels, cluster, "ydragon");
+            bool pattern = pattern_alive || pattern_firing || pattern_dead;
             // Check if this is a yellow dragon cluster (alive)
-            if (color_match(color, COLORS.at("ydragon")) && cluster.size() >= 142 && cluster.size() < 180) {
+            if (color_match(color, COLORS.at("ydragon")) && (pattern || size) ) {
                 // Check if any pixel in dragon cluster is adjacent to sword
                 if(printing) std::cout << "Checking dragon cluster with size: " << cluster.size() << " and color: " << static_cast<int>(color) << std::endl;
                 int adjacent_count = 0;
@@ -2185,9 +2196,9 @@ struct SimPlanner : Planner {
                 }
             }
         }
-         if(printing) std::cout << "sword candidates: " << candidates.size() << std::endl;
+        if(printing) std::cout << "sword candidates: " << candidates.size() << std::endl;
         auto sword_cluster = cluster_pixels(candidates, screen_pixels);
-         std::set<std::pair<int, int>> sword_cluster_filtered;
+        std::set<std::pair<int, int>> sword_cluster_filtered;
         for(auto& cluster : sword_cluster) {
            
              // Calculate cluster size and color
@@ -2208,9 +2219,14 @@ struct SimPlanner : Planner {
         for (const auto& cluster : dragon_clusters) {
             auto first_pixel = *cluster.begin();
             pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
-            
+            //changed added pattern matching
+            bool size = (cluster.size() >= 142 && cluster.size() < 180);
+            bool pattern_alive = check_dragon_pattern_alive(screen_pixels, cluster, "gdragon");
+            bool pattern_firing = check_dragon_pattern_firing(screen_pixels, cluster, "gdragon", printing);
+            bool pattern_dead = check_dragon_pattern(screen_pixels, cluster, "gdragon");
+            bool pattern = pattern_alive || pattern_firing || pattern_dead;
             // Check if this is a yellow dragon cluster (alive)
-            if (color_match(color, COLORS.at("gdragon")) && cluster.size() >= 142 && cluster.size() < 180) {
+            if (color_match(color, COLORS.at("gdragon")) && (pattern || size) ) {
                 // Check if any pixel in dragon cluster is adjacent to sword
                 if(printing) std::cout << "Checking dragon cluster with size: " << cluster.size() << " and color: " << static_cast<int>(color) << std::endl;
                 int adjacent_count = 0;
@@ -2537,8 +2553,8 @@ struct SimPlanner : Planner {
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
                 if(printing_sketches_) std::cout << "SKETCH 3 GOAL Computation " << std::endl;
                 //planner.calculate_distance_from_goal(curr);
-                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
-                bool ydrag_in_room = planner.ydragonr(curr, printing_sketches_);
+                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                bool ydrag_in_room = planner.ydragonr(curr,printing_sketches_);
                 bool goal_achieved = sword && ydrag_in_room;
                 if(printing_sketches_){
                 std::cout << "SKETCH 3 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | ydragon_in room=" << ydrag_in_room << std::endl;
@@ -2546,7 +2562,7 @@ struct SimPlanner : Planner {
                
                 return goal_achieved;
             },
-            "reach d"
+            "reach dragon room"
         });
         //kill ydragon
         sketches_.push_back(Sketch{
@@ -2565,7 +2581,7 @@ struct SimPlanner : Planner {
             },
             [this](const SimPlanner& planner, const std::vector<pixel_t>& prev, const std::vector<pixel_t>& curr, const std::vector<pixel_t>& prevs) {
                 if(printing_sketches_) std::cout << "SKETCH 4 GOAL Computation " << std::endl;
-                bool sword = planner.ysword(curr,prev,printing_sketches_);
+                bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
                 bool ydrag = planner.ydragon_killed(curr,printing_sketches_);
                 bool ydrag_in_room = planner.ydragonr(curr, printing_sketches_);
                 //planner.calculate_distance_from_goal(curr);
@@ -2599,7 +2615,7 @@ struct SimPlanner : Planner {
                 bool ydrag = planner.ydragon_killed(curr,printing_sketches_);
                 bool cond = sword && ydrag && !gdrag_in_room;
                 if(printing_sketches_){
-                std::cout << "SKETCH 5 PRE:" << " | ysword=" << sword << " | gdrag_in_room=" << gdrag_in_room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                std::cout << "SKETCH 5 PRE:" << " | ysword=" << sword << " | !gdrag_in_room=" << !gdrag_in_room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 return cond;
             },
@@ -2607,7 +2623,7 @@ struct SimPlanner : Planner {
                 if(printing_sketches_) std::cout << "SKETCH 5 GOAL Computation " << std::endl;
                 //planner.calculate_distance_from_goal(curr);
                 bool sword = planner.ysword(curr,prev,planner.printing_sketches_functions);
-               bool gdrag_in_room = planner.gdragonr(curr);
+               bool gdrag_in_room = planner.gdragonr(curr,printing_sketches_);
                 bool goal_achieved = sword && gdrag_in_room ;
                 if(printing_sketches_){
                 std::cout << "SKETCH 5 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") <<  " | ysword=" << sword  << " | gdragon_in room=" << gdrag_in_room << std::endl;
@@ -2628,7 +2644,7 @@ struct SimPlanner : Planner {
                 bool cond = sword && ydrag && gdrag_in_room && !gdrag;
                 //planner.calculate_distance_from_goal(curr);
                 if(printing_sketches_){
-                std::cout << "SKETCH 6 PRE:" << " | ysword=" << sword << " | ydrag=" << ydrag << " gdrag_in_room" << gdrag_in_room << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
+                std::cout << "SKETCH 6 PRE:" << " | ysword=" << sword << " | ydrag=" << ydrag << " | gdrag_in_room=" << gdrag_in_room << " | !gdrag=" << !gdrag << " | " << (cond ? "ACTIVE" : "INACTIVE") << std::endl;
                 }
                 
                 return cond;
