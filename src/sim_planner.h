@@ -1421,7 +1421,15 @@ struct SimPlanner : Planner {
         auto filtered_clusters = clusters; 
         if(printing_debug) std::cout<< "the size of exlcusion points" << exclusion_centroids.size();
         if(!exclusion_centroids.empty())  filtered_clusters = filter_clusters_by_exclusion_points(clusters, exclusion_centroids);
-         if(printing){
+        //changed adding size exclusion to avoid small noise
+        for (auto it = filtered_clusters.begin(); it != filtered_clusters.end(); ) {
+            if (it->size() < 100 || it->size() >= 180) { // Minimum size threshold
+                it = filtered_clusters.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        if(printing){
             for(auto c: clusters) {
                 auto first_pixel = *c.begin();
                 pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
@@ -1438,7 +1446,7 @@ struct SimPlanner : Planner {
         if(printing_debug|| printing) std::cout<<"cluster size after filtering" << filtered_clusters.size() << std::endl; 
         for (const auto& cluster : filtered_clusters) {
             if(printing) std::cout << "filtered cluster with size: " << cluster.size() << std::endl;
-            //changed 140 --> 100-->103
+            //changed 140 --> 100-->105
             if (cluster.size() < 100 || cluster.size() >= 180) continue; // Dragon size threshold
             auto first_pixel = *cluster.begin();
             pixel_t color = screen_pixels[first_pixel.second * SCREEN_WIDTH + first_pixel.first];
@@ -1500,7 +1508,7 @@ struct SimPlanner : Planner {
        auto filtered_clusters = dragon_helper_function(screen_pixels);
        //got the filtered clusters
         for (const auto& cluster : filtered_clusters) {
-            //changed 140 --> 100
+            //changed 140 --> 100-->105
             if (cluster.size() < 100 || cluster.size() >= 180) continue; // Dragon size threshold
             
             auto first_pixel = *cluster.begin();
@@ -1732,7 +1740,7 @@ struct SimPlanner : Planner {
     int chalice_dist(const std::vector<pixel_t>& screen_pixels) const {
         return get_item_distance( "chalice", screen_pixels); 
     }
-    //changing size 142 --> 100 && now adding pattern matching 
+    //changing size 142 --> 100-->105 && now adding pattern matching 
     int sword_dist_to_ydragon(const std::vector<pixel_t>& screen_pixels) const {
         //get sword coordinates
        auto items = detect_items_entire_screen(screen_pixels);
