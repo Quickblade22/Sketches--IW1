@@ -435,6 +435,7 @@ struct BfsIW : SimPlanner {
             if (fulfillment_branch_.empty()) {
 
                 for (size_t i = 0; i < node->post.size(); ++i) {
+                    if( i == 5 && root->pre[5] ) printing_sketches_debug = true;
                     if (root->pre[i] && node->post[i]) {
                         // Reconstruct branch from root to this node
                         std::deque<Action> temp_branch;
@@ -452,8 +453,6 @@ struct BfsIW : SimPlanner {
             }
             
             // check termination at this node
-            
-            
             if( node->terminal_ ) {
                 logging::Logger::Continuation(logging::Logger::Debug) << "t" << "," << std::flush;
                 continue;
