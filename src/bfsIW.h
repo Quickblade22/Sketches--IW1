@@ -208,12 +208,12 @@ struct BfsIW : SimPlanner {
             for(auto i: root->pre){
                 pres += static_cast<int>(i); 
             }
-           if(root->pre[4] && !print ) {
-                std::cout << " Killing ydragon active " << std::endl; 
-                //printing_screen(root->screen_pixels_);
+           if(root->pre[5] && !print ) {
+                std::cout << " reaching gdragon active " << std::endl; 
+                printing_screen(root->screen_pixels_);
                 print = true;
-            }else if(print && !root->pre[4]) {
-                std::cout << " Killing ydragon inactive " << std::endl; 
+            }else if(print && !root->pre[5]) {
+                std::cout << " reaching gdragon inactive " << std::endl; 
                 printing_screen(root->screen_pixels_);
             }
             if(root->pre[6] && !gdragon_print_screen ) {
@@ -239,26 +239,42 @@ struct BfsIW : SimPlanner {
                             std::cout << "Action in fulfillment branch: "; 
                             for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
                             std::cout  << std::endl;
-                            if(best_node->node_ydragon) {
-                                std::cout << "Best node is ydragon, printing screen from current node until root node/node where ydragon true " << std::endl;
+                            if(best_node->node_gdragon) {
+                                std::cout << "Best node is gdragon, printing screen from current node until root node/node where ydragon true " << std::endl;
                                 auto temp_node = best_node->parent_;
                                 int i = 1; 
                                 while(temp_node != nullptr && temp_node != root ) {
-                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and ydragon is " << temp_node->node_ydragon  << std::endl;
-                                    if(temp_node->node_ydragon) {
-                                        std::cout << "Found ydragon at depth " << i << std::endl;
+                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and gdragon is " << temp_node->node_gdragon  << std::endl;
+                                    if(temp_node->node_gdragon) {
+                                        std::cout << "Found gdragon at depth " << i << std::endl;
                                         //printing_screen(temp_node->screen_pixels_);
                                     }
                                     temp_node = temp_node->parent_;
                                     ++i;
                                 }
                             }
-                            bool temp_before =  best_node->node_yswrt;
+                            bool temp_before =  best_node->node_bkeyt;
                             if(temp_before && transition_printing_debug) {
                                 std::cout << "father_node is " << 
-                                best_node->parent_->action_ << " and yswrt" <<  best_node->parent_->node_yswrt 
-                                << " current node is " << best_node->action_  << "and yswrt " 
-                                << best_node->node_yswrt << std::endl;
+                                best_node->parent_->action_ << " and bkeyt" <<  best_node->parent_->node_bkeyt 
+                                << " current node is " << best_node->action_  << "and bkeyt " 
+                                << best_node->node_bkeyt << std::endl;
+                            }
+                            if(best_node->node_bkeyt){
+                                std::cout << "Best node is bkeyt, printing screen from current node until root node/node where bkeyt true " << std::endl;
+                                auto temp_node = best_node->parent_;
+                                int i = 1; 
+                                while(temp_node != nullptr && temp_node != root ) {
+                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and bkeyt is " << temp_node->node_bkeyt  << std::endl;
+                                    if(temp_node->node_bkeyt) {
+                                        auto temp2 = highlight_cube(temp_node->screen_pixels_, temp_node->screen_pixels_);
+                                        std::cout << "Found bkeyt at depth " << i << " and cube is at " <<  temp2.first << ", " << temp2.second << " and bkey at "  << std::endl;
+                                        
+                                        printing_screen(temp_node->screen_pixels_);
+                                    }
+                                    temp_node = temp_node->parent_;
+                                    ++i;
+                                }
                             }
                             //variables of best_node
                             bool temp_ykeyt = best_node->node_ykeyt; 
