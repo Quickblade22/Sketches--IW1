@@ -208,7 +208,7 @@ struct BfsIW : SimPlanner {
             for(auto i: root->pre){
                 pres += static_cast<int>(i); 
             }
-           if(root->pre[5] && !print ) {
+           /*if(root->pre[5] && !print ) {
                 std::cout << " reaching gdragon active " << std::endl; 
                 printing_screen(root->screen_pixels_);
                 print = true;
@@ -223,7 +223,7 @@ struct BfsIW : SimPlanner {
             }else if(gdragon_print_screen && !root->pre[6]) {
                 std::cout << " Killing gdragon inactive " << std::endl; 
                 printing_screen(root->screen_pixels_);
-            }
+            }*/
            
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
             if( pres != 0 ) {
@@ -234,42 +234,62 @@ struct BfsIW : SimPlanner {
                 
                 if(!fulfillment_branch_.empty()) {
                      branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
+                     Node* temp_node_parent = (best_node->parent_ != nullptr && !best_node->parent_->screen_pixels_.empty()) ? best_node->parent_ : best_node;
                      if(transition_printing_debug) {
                             debug_time = Utils::read_time_in_seconds();
                             std::cout << "Action in fulfillment branch: "; 
                             for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
                             std::cout  << std::endl;
-                            if(best_node->node_gdragon) {
-                                std::cout << "Best node is gdragon, printing screen from current node until root node/node where ydragon true " << std::endl;
+                            bool chalicer_bool = chalicer(best_node->screen_pixels_, temp_node_parent->screen_pixels_);
+                            std::cout<< "At fulfillment branch end, chalicer is " << chalicer_bool << std::endl;
+                            if(chalicer_bool) {
+                                std::cout << "Best node is chalicer_bool, printing screen from current node until root node/node where chalicer_bool true " << std::endl;
+                                printing_screen(best_node->screen_pixels_);
+                                auto items =  detect_items_entire_screen(best_node->screen_pixels_, temp_node_parent->screen_pixels_);
+                                auto temp2 = highlight_cube(best_node->screen_pixels_, best_node->screen_pixels_);
+                                for(const auto& item: items) {
+                                    if(item.first == "chalice") {
+                                        std::cout << "chalice at " << item.second.first << ", " << item.second.second << " and cube is at " <<  temp2.first << ", " << temp2.second << std::endl;
+                                        std::cout << "chalice cluster has the color " << static_cast<int>(best_node->screen_pixels_[item.second.second * SCREEN_WIDTH + item.second.first]) << std::endl;
+                                    }
+                                }
                                 auto temp_node = best_node->parent_;
                                 int i = 1; 
                                 while(temp_node != nullptr && temp_node != root ) {
-                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and gdragon is " << temp_node->node_gdragon  << std::endl;
-                                    if(temp_node->node_gdragon) {
-                                        std::cout << "Found gdragon at depth " << i << std::endl;
-                                        //printing_screen(temp_node->screen_pixels_);
+                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and chalicer is " << temp_node->node_chalicet  << std::endl;
+                                    bool temp_bool = chalicer(temp_node->screen_pixels_,temp_node_parent->screen_pixels_);
+                                    if(temp_bool) {
+                                        std::cout << "Found chalicer at depth " << i << std::endl;
+                                        auto items =  detect_items_entire_screen(temp_node->screen_pixels_, temp_node_parent->screen_pixels_);
+                                        auto temp2 = highlight_cube(temp_node->screen_pixels_, temp_node->screen_pixels_);
+                                        for(const auto& item: items) {
+                                            if(item.first == "chalice") {
+                                                std::cout << "chalice at " << item.second.first << ", " << item.second.second << " and cube is at " <<  temp2.first << ", " << temp2.second << std::endl;
+                                            }
+                                        }
+                                        printing_screen(temp_node->screen_pixels_);
                                     }
                                     temp_node = temp_node->parent_;
                                     ++i;
                                 }
                             }
-                            bool temp_before =  best_node->node_bkeyt;
+                           /* bool temp_before =  best_node->node_chalicet;
                             if(temp_before && transition_printing_debug) {
                                 std::cout << "father_node is " << 
-                                best_node->parent_->action_ << " and bkeyt" <<  best_node->parent_->node_bkeyt 
+                                best_node->parent_->action_ << " and bkeyt" <<  best_node->parent_->node_chalicet 
                                 << " current node is " << best_node->action_  << "and bkeyt " 
-                                << best_node->node_bkeyt << std::endl;
-                            }
-                            if(best_node->node_bkeyt){
-                                std::cout << "Best node is bkeyt, printing screen from current node until root node/node where bkeyt true " << std::endl;
+                                << best_node->node_chalicet << std::endl;
+                            }*/
+                            if(best_node->node_chalicet){
+                                std::cout << "Best node is chalicet, printing screen from current node until root node/node where chalicet true " << std::endl;
                                 auto temp_node = best_node->parent_;
                                 int i = 1; 
                                 while(temp_node != nullptr && temp_node != root ) {
-                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and bkeyt is " << temp_node->node_bkeyt  << std::endl;
-                                    if(temp_node->node_bkeyt) {
+                                    std::cout << "best node's "<<  i <<" father and its  action: " << temp_node->action_ << " and chalicet is " << temp_node->node_chalicet  << std::endl;
+                                    if(temp_node->node_chalicet) {
                                         auto temp2 = highlight_cube(temp_node->screen_pixels_, temp_node->screen_pixels_);
-                                        std::cout << "Found bkeyt at depth " << i << " and cube is at " <<  temp2.first << ", " << temp2.second << " and bkey at "  << std::endl;
-                                        
+                                        std::cout << "Found chalicet at depth " << i << " and cube is at " <<  temp2.first << ", " << temp2.second << " and chalicet at "  << std::endl;
+
                                         printing_screen(temp_node->screen_pixels_);
                                     }
                                     temp_node = temp_node->parent_;
@@ -277,6 +297,7 @@ struct BfsIW : SimPlanner {
                                 }
                             }
                             //variables of best_node
+                            
                             bool temp_ykeyt = best_node->node_ykeyt; 
                             bool temp_bkeyt = best_node->node_bkeyt;
                             bool temp_yswrt = best_node->node_yswrt;
@@ -357,10 +378,12 @@ struct BfsIW : SimPlanner {
             //clearing fulfillment branch
             fulfillment_branch_.clear();
             if(transition_printing_debug){
-                  std::cout << "distance to items: ykey: best node = " << ykey_dist(best_node->screen_pixels_)  << " root= " << ykey_dist(root->screen_pixels_)
-                                      << " ysword: best node = " << ysword_dist(best_node->screen_pixels_) << " root= " << ysword_dist(root->screen_pixels_)
-                                      << " bkey: best node = " << bkey_dist(best_node->screen_pixels_) << " root= " << bkey_dist(root->screen_pixels_)
-                                      << " chalice: best node = " << chalice_dist(best_node->screen_pixels_) << " root= " << chalice_dist(root->screen_pixels_)
+                  Node* temp_node_parent = (best_node->parent_ != nullptr && !best_node->parent_->screen_pixels_.empty()) ? best_node->parent_ : best_node;
+                  Node* root_parent = (root->parent_ != nullptr && !root->parent_->screen_pixels_.empty()) ? root->parent_ : root;
+                  std::cout << "distance to items: ykey: best node = " << ykey_dist(best_node->screen_pixels_, temp_node_parent->screen_pixels_)  << " root= " << ykey_dist(root->screen_pixels_, root_parent->screen_pixels_)
+                                      << " ysword: best node = " << ysword_dist(best_node->screen_pixels_, temp_node_parent->screen_pixels_) << " root= " << ysword_dist(root->screen_pixels_, root_parent->screen_pixels_)
+                                      << " bkey: best node = " << bkey_dist(best_node->screen_pixels_, temp_node_parent->screen_pixels_) << " root= " << bkey_dist(root->screen_pixels_, root_parent->screen_pixels_)
+                                      << " chalice: best node = " << chalice_dist(best_node->screen_pixels_, temp_node_parent->screen_pixels_) << " root= " << chalice_dist(root->screen_pixels_, root_parent->screen_pixels_)
                                       << std::endl;
             }
             // make sure states along branch exist (only needed when doing partial caching)
