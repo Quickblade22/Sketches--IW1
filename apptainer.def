@@ -1,0 +1,70 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%post
+    # Set to avoid user input blocking (e.g., timezone selection)
+    export DEBIAN_FRONTEND=noninteractive
+    # Update package list and install essential tools
+    apt-get update && apt-get install -y \
+        build-essential \
+        cmake \
+        git \
+        wget \
+        pkg-config
+    
+    # Install SDL2 and other dependencies
+    apt-get install -y \
+        libsdl2-dev \
+        libsdl2-image-dev \
+        libsdl2-ttf-dev \
+        libsdl2-gfx-dev \
+        libboost-all-dev
+    
+    # Install ALE dependencies - CORRECTED SECTION
+    # libavresample-dev is deprecated; using libswresample-dev instead
+    apt-get install -y \
+        libavutil-dev \
+        libavformat-dev \
+        libavcodec-dev \
+        libswscale-dev \
+        libswresample-dev  # Replaces libavresample-dev
+
+    # Clone and build ALE
+    cd /opt
+    git clone https://github.com/mgbellemare/Arcade-Learning-Environment.git
+    cd Arcade-Learning-Environment
+    mkdir build && cd build
+    cmake .. -DUSE_SDL=ON
+    make -j$(nproc)
+    make install
+
+    # Clone and build your project
+    cd /opt
+    git clone https://github.com/bonetblai/rollout-iw.git
+    cd rollout-iw
+    # If your project needs ALE path specified, you might need to modify Makefile
+    # or set environment variables here
+
+%environment
+    export LC_ALL=C
+    # Set ALE location if your project needs it
+    export ALE_DIR=/opt/Arcade-Learning-Environment
+    # Add to library path
+    export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
+
+%runscript
+    echo "Container with ALE and rollout-iw project ready"
+    echo "Project is located at: /opt/rollout-iw"
+    echo "Use --bind to mount your host project directory if needed for development"
+
+%labels
+    Author YourName
+    Version 1.0
+    Description "Container for rollout-iw project with ALE"
+
+%help
+    This container contains the Arcade Learning Environment and rollout-iw project.
+    To build and run your project:
+    1. Shell into container: apptainer shell --bind /host/path/to/your/code:/workspace mycontainer.sif
+    2. Navigate to /opt/rollout-iw or /workspace
+    3. Run make and your executable

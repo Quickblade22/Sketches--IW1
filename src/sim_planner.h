@@ -1298,7 +1298,7 @@ struct SimPlanner : Planner {
             else if (size >= 26 && size <= 30 && color_match(color, COLORS.at("black"))) {
                 item_type = "black_key";
                 //temporarily adding yellow as a nogo to motivate the cube to move further away
-            } else if (size >= 67 && size <= 68 && !color_match(color, prev_color) && !color_match(color, COLORS.at("yellow"))) {
+            } else if (size >= 66 && size <= 68 && check_pattern_chalice(screen_pixels, cluster)) {
                 if(printing ){
                     bool same = true; 
                     for(int i = 0; i < screen_pixels.size(); i++){
@@ -1373,7 +1373,7 @@ struct SimPlanner : Planner {
             else if (size >= 20 && size <= 25 && color_match(color, COLORS.at("yellow"))) {
                 item_type = "yellow_sword";
             } 
-            else if (size >= 67 && size <= 68 && !color_match(color, prev_color) && !color_match(color, COLORS.at("yellow"))) {
+            else if (size >= 66 && size <= 68 && check_pattern_chalice(screen_pixels, cluster)) {
                 
                 item_type = "chalice";
             }
@@ -1394,6 +1394,102 @@ struct SimPlanner : Planner {
         return items;
     }
     
+    
+    //chalice pattern matching
+    bool check_pattern_chalice(const std::vector<pixel_t>& screen_pixels, const std::set<std::pair<int, int>>& cluster) const {
+        // Chalice pattern definition
+        const std::vector<std::vector<pixel_t>> pattern_chalice = {
+            {116, 170, 170, 170, 170, 170, 170, 116},
+            {116, 170, 170, 170, 170, 170, 170, 116},
+            {116, 170, 170, 170, 170, 170, 170, 116},
+            {116, 116, 170, 170, 170, 170, 116, 116},
+            {116, 116, 170, 170, 170, 170, 116, 116},
+            {170, 116, 116, 116, 116, 116, 116, 170},
+            {170, 116, 116, 116, 116, 116, 116, 170},
+            {170, 116, 116, 116, 116, 116, 116, 170},
+            {170, 116, 116, 116, 116, 116, 116, 170},
+            {170, 170, 116, 116, 116, 116, 170, 170},
+            {170, 170, 116, 116, 116, 116, 170, 170},
+            {170, 170, 170, 116, 116, 170, 170, 170},
+            {170, 170, 170, 116, 116, 170, 170, 170},
+            {170, 170, 170, 116, 116, 170, 170, 170},
+            {170, 170, 170, 116, 116, 170, 170, 170},
+            {170, 116, 116, 116, 116, 116, 116, 170},
+            {170, 116, 116, 116, 116, 116, 116, 170}
+        };
+
+        // First, find the chalice color (the non-grey color in the pattern)
+        pixel_t chalice_color = 0;
+        bool found_color = false;
+        
+        for (const auto& pixel : cluster) {
+            int x = pixel.first;
+            int y = pixel.second;
+            size_t idx = static_cast<size_t>(y) * SCREEN_WIDTH + static_cast<size_t>(x);
+            pixel_t pixel_val = screen_pixels[idx];
+            
+            if (!is_grey(pixel_val) && !color_match(pixel_val, COLORS.at("grey"))) {
+                chalice_color = pixel_val;
+                found_color = true;
+                break;
+            }
+        }
+
+        if (!found_color) {
+            if (printing_debug) std::cout << "No chalice color found in cluster" << std::endl;
+            return false;
+        }
+
+        // Try to match the pattern at different positions in the cluster
+        for (const auto& start_pixel : cluster) {
+            int start_x = start_pixel.first;
+            int start_y = start_pixel.second;
+            bool match = true;
+
+            // Check if we have enough space for the pattern
+            if (start_x + static_cast<int>(pattern_chalice[0].size()) > SCREEN_WIDTH ||
+                start_y + static_cast<int>(pattern_chalice.size()) > SCREEN_HEIGHT) {
+                continue;
+            }
+
+            // Check each pixel in the pattern
+            for (size_t py = 0; py < pattern_chalice.size() && match; py++) {
+                for (size_t px = 0; px < pattern_chalice[py].size() && match; px++) {
+                    int scene_x = start_x + static_cast<int>(px);
+                    int scene_y = start_y + static_cast<int>(py);
+                    size_t scene_idx = static_cast<size_t>(scene_y) * SCREEN_WIDTH + static_cast<size_t>(scene_x);
+                    pixel_t scene_pixel = screen_pixels[scene_idx];
+                    pixel_t pattern_val = pattern_chalice[py][px];
+
+                    // Pattern value 116 should match chalice color, 170 should be grey
+                    if (pattern_val == 116) {
+                        if (!color_match(scene_pixel, chalice_color)) {
+                            match = false;
+                            break;
+                        }
+                    } else { // pattern_val == 170
+                        if (!(is_grey(scene_pixel) || color_match(scene_pixel, COLORS.at("grey")))) {
+                            match = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (match) {
+                if (printing_debug) {
+                    std::cout << "Chalice pattern matched at (" << start_x << ", " << start_y << ")" << std::endl;
+                }
+                return true;
+            }
+        }
+
+        if (printing_debug) {
+            std::cout << "Chalice pattern not found in cluster" << std::endl;
+        }
+        return false;
+    }
+
     std::vector<std::set<std::pair<int, int>>> dragon_helper_function(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& prev_pixels, bool printing = false) const {
        auto regions = regions_for_cube(screen_pixels);
         //update needed
@@ -1753,7 +1849,7 @@ struct SimPlanner : Planner {
                 else if (size >= 26 && size <= 30 && color_match(color, COLORS.at("black")) && item_type == "black_key") {
                     return manhattan_dist(center_x, center_y, temp.first, temp.second);
                     //temporarily adding yellow color as a no to motivate the cube to move further 
-                } else if (size >= 67 && size <= 68 && item_type == "chalice" && !color_match(color, COLORS.at("yellow"))) {
+                } else if (size >= 66 && size <= 68 && item_type == "chalice" && check_pattern_chalice(screen_pixels, cluster)) {
                     return manhattan_dist(center_x, center_y, temp.first, temp.second);
                 }
             } 
@@ -2107,7 +2203,7 @@ struct SimPlanner : Planner {
                 chalicet = false;
                 if (printing_debug) std::cout << " founnd yswrt " << std::endl;
                 return true; 
-            }else if (size >= 67 && size <= 68 && type == "chalice" && !color_match(color, COLORS.at("grey"))) {
+            }else if (size >= 66 && size <= 68 && type == "chalice" && check_pattern_chalice(screen_pixels, cluster)) {
                 chalicet = true; 
                 ykeyt = false;
                 bkeyt = false;
