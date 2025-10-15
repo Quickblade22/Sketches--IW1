@@ -1394,7 +1394,6 @@ struct SimPlanner : Planner {
         return items;
     }
     
-    
     //chalice pattern matching
     bool check_pattern_chalice(const std::vector<pixel_t>& screen_pixels, const std::set<std::pair<int, int>>& cluster) const {
         // Chalice pattern definition
@@ -1630,7 +1629,6 @@ struct SimPlanner : Planner {
         }
     }
     
-    
     bool detect_dragons_in_room(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& previous_pixels, std::string dragon_type, bool printing = false) const {
        auto filtered_clusters = dragon_helper_function(screen_pixels, previous_pixels);
        //got the filtered clusters
@@ -1774,7 +1772,6 @@ struct SimPlanner : Planner {
         return false;
     }
 
-    
     bool ydragon_killed(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& previous_pixels, bool printing = false) const {
         if(printing) std::cout << "ydragon function called" << std::endl; 
         if(ydragon) return true; 
@@ -1982,7 +1979,6 @@ struct SimPlanner : Planner {
         //if(detected && printing) printing_screen(screen_pixels);
         return detected;
     }
-    
     bool ysword(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image, bool printing = false) const {
         auto cube_pos = highlight_cube(screen_pixels, prev_image);
         bool detected = detect_ykey_touching_cube(screen_pixels, prev_image, cube_pos, "yellow_sword", printing);
@@ -1990,7 +1986,6 @@ struct SimPlanner : Planner {
         if(printing) std::cout <<"detect_ysword_printing: " <<detected << std::endl;
         return detected;
     }
-    
     bool chalice(const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& prev_image, bool printing = false) const {
         auto cube_pos = highlight_cube(screen_pixels, prev_image);
         bool detected = detect_ykey_touching_cube(screen_pixels, prev_image, cube_pos, "chalice", printing);
@@ -2901,7 +2896,7 @@ struct SimPlanner : Planner {
                 bool ydrag_in_room = planner.ydragonr(curr, prevs, printing_sketches_);
                 bool chalice = planner.chalicer(curr,prevs,  printing_sketches_);
                 auto temp =  planner.regions_for_cube(curr);
-                bool reached = (planner.Last_room_color == 11); //chalice 
+                bool reached = (planner.Last_room_color == 11 || chalice); //chalice 
                 bool goal_achieved = key && !ydrag_in_room && reached; 
                 if(printing_sketches_){
                 std::cout << "SKETCH 9 GOAL: " << (goal_achieved ? "REACHED" : "MOVING") 
