@@ -61,7 +61,9 @@ struct BfsIW : SimPlanner {
         use_alpha_to_update_reward_for_death_(use_alpha_to_update_reward_for_death),
         nodes_threshold_(nodes_threshold),
         break_ties_using_rewards_(break_ties_using_rewards), game(games) ,depth_to_search(look_ahead) {
-           initalize_sketches_adventure();
+           if(game == 0) initalize_sketches_adventure();
+           else if (game == 1) initialize_sketches_private_eye(); 
+           
            //initialize_sketches_seaquest();
            /* if(game == 0) initialize_sketches();
             else if (game == 1) initialize_sketches_breakout(); 
@@ -99,6 +101,8 @@ struct BfsIW : SimPlanner {
     }
     const bool printing_debug = false; // Set to true to enable debug printing
     const bool transition_printing_debug = true; // Set to true to enable transition debug printing
+    const bool transtion_printing_debug_adventure = false; 
+    const bool transition_printing_debug_private_eye = true;
     //const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
     virtual Node* get_branch(ALEInterface &env,
                              const std::vector<Action> &prefix,
@@ -233,13 +237,13 @@ struct BfsIW : SimPlanner {
                 if(printing_debug) std::cout << "fulfillment branch size: " << fulfillment_branch_.size() << std::endl;
                 
                 if(!fulfillment_branch_.empty()) {
-                     branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
-                     Node* temp_node_parent = (best_node->parent_ != nullptr && !best_node->parent_->screen_pixels_.empty()) ? best_node->parent_ : best_node;
-                     if(transition_printing_debug) {
+                    branch.insert(branch.end(), fulfillment_branch_.begin(), fulfillment_branch_.end());
+                    std::cout << "Action in fulfillment branch: "; 
+                    for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
+                    std::cout  << std::endl;
+                    Node* temp_node_parent = (best_node->parent_ != nullptr && !best_node->parent_->screen_pixels_.empty()) ? best_node->parent_ : best_node;
+                    if(transtion_printing_debug_adventure) {
                             debug_time = Utils::read_time_in_seconds();
-                            std::cout << "Action in fulfillment branch: "; 
-                            for(const auto& act:fulfillment_branch_) std::cout << act << " " ;
-                            std::cout  << std::endl;
                             bool chalicer_bool = chalicer(best_node->screen_pixels_, temp_node_parent->screen_pixels_);
                             std::cout<< "At fulfillment branch end, chalicer is " << chalicer_bool << std::endl;
                             if(chalicer_bool) {
@@ -344,6 +348,26 @@ struct BfsIW : SimPlanner {
                             best_node->node_Last_room_color = last_room_color;
                             
                         }
+                    if(transition_printing_debug_private_eye){
+                        debug_time = Utils::read_time_in_seconds();
+                        bool recompute = true; 
+                        std::vector<bool> temp_goal = {false};
+                        std::vector<bool> temp_pre = {false};
+                        bool trial_debug = true;
+                        std::cout<< "checking sketches preconditions and goals for best node: " << best_node->action_ << std::endl;
+                        if(recompute){
+                                if(best_node->parent_ != nullptr ){                                  
+                                    if(best_node->parent_->parent_ != nullptr) temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->parent_->screen_pixels_, *this, best_node,trial_debug);
+                                    else  temp_goal = check_sketches_goals(best_node->parent_->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug); 
+                                    temp_pre = check_sketches_preconditions(best_node->parent_->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);     
+                                }else {
+                                    temp_goal = check_sketches_goals(best_node->screen_pixels_, best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);
+                                    temp_pre = check_sketches_preconditions(best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);
+                                
+                                }
+                            }
+                        std::cout << "----------------------------------------------------- " << std::endl;
+                        }    
                         debug_time_stop = Utils::read_time_in_seconds() - debug_time;
                 }else{
                     std::cout << "fulfillment branch is empty, falling back" << std::endl;
@@ -526,6 +550,7 @@ struct BfsIW : SimPlanner {
             if( node->frame_rep_ == 0 ) {
                 ++num_expansions_;
                 float start_time = Utils::read_time_in_seconds();
+                //false --> true --> randomly shuffling the children
                 node->expand(action_set_, false);
                 expand_time_ += Utils::read_time_in_seconds() - start_time;
             } else {
