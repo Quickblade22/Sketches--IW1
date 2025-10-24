@@ -258,6 +258,7 @@ struct MyALEScreen {
                 pixel_t b = background_[(15*r + ir) * width_ + (10*c + ic)];
 
                 // subtract/ammend background pixel
+                
                 if( p < b )
                     ammend_background_image(ale, 15*r + ir, 10*c + ic);
                 else

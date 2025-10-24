@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
     // options for bfs planner
     bool opt_break_ties_using_rewards = false;
     //games: 
-    int games = 1; // 0 for adventure, 1 for private eye , 2 for seaquest
+    int games = 0; // 0 for adventure, 1 for private eye , 2 for seaquest
     // declare supported options
     po::options_description opt_desc("Allowed options");
     opt_desc.add_options()
