@@ -101,8 +101,8 @@ struct BfsIW : SimPlanner {
     }
     const bool printing_debug = false; // Set to true to enable debug printing
     const bool transition_printing_debug = true; // Set to true to enable transition debug printing
-    const bool transtion_printing_debug_adventure = false; 
-    const bool transition_printing_debug_private_eye = true;
+    const bool transtion_printing_debug_adventure = (game == 0) ? true : false; // Set to true to enable transition debug printing for adventure
+    const bool transition_printing_debug_private_eye = (game == 1) ? true : false; // Set to true to enable transition debug printing for private eye
     //const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
     virtual Node* get_branch(ALEInterface &env,
                              const std::vector<Action> &prefix,
@@ -471,7 +471,7 @@ struct BfsIW : SimPlanner {
             assert((node->num_children_ == 0) && (node->first_child_ == nullptr));
             assert(node->visited_ || (node->is_info_valid_ != 2));
             if( node->is_info_valid_ != 2 ) {
-                update_info(node, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
+                update_info(node, screen_features_, alpha_, use_alpha_to_update_reward_for_death_, root->node_Last_room_color);
                 assert((node->num_children_ == 0) && (node->first_child_ == nullptr));
                 node->visited_ = true;
                 
@@ -498,7 +498,6 @@ struct BfsIW : SimPlanner {
             if (fulfillment_branch_.empty()) {
 
                 for (size_t i = 0; i < node->post.size(); ++i) {
-                    if( i == 5 && root->pre[5] ) printing_sketches_debug = true;
                     if (root->pre[i] && node->post[i]) {
                         // Reconstruct branch from root to this node
                         std::deque<Action> temp_branch;
