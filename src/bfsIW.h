@@ -35,6 +35,7 @@ struct BfsIW : SimPlanner {
     mutable  Node *best_node; 
     mutable bool print = false; 
     mutable bool gdragon_print_screen = false; 
+     mutable std::deque<Action> actions_;
     BfsIW(ALEInterface &sim,
           size_t frameskip,
           bool use_minimal_action_set,
@@ -49,7 +50,7 @@ struct BfsIW : SimPlanner {
           float alpha,
           bool use_alpha_to_update_reward_for_death,
           int nodes_threshold,
-          bool break_ties_using_rewards,int games ,int look_ahead = 100, bool printing_sketches = false)
+          bool break_ties_using_rewards,int games ,int look_ahead = 100, bool printing_sketches = false, const std::vector<Action> &actions = std::vector<Action>())
       : SimPlanner(sim, frameskip, use_minimal_action_set, simulator_budget, num_tracked_atoms, look_ahead, printing_sketches),
         screen_features_(screen_features),
         time_budget_(time_budget),
@@ -63,7 +64,9 @@ struct BfsIW : SimPlanner {
         break_ties_using_rewards_(break_ties_using_rewards), game(games) ,depth_to_search(look_ahead) {
            if(game == 0) initalize_sketches_adventure();
            else if (game == 1) initialize_sketches_private_eye(); 
-           
+           if(actions.size() > 0) {
+               actions_ = std::deque<Action>(actions.begin(), actions.end());
+           }
            //initialize_sketches_seaquest();
            /* if(game == 0) initialize_sketches();
             else if (game == 1) initialize_sketches_breakout(); 
@@ -103,8 +106,21 @@ struct BfsIW : SimPlanner {
     const bool transition_printing_debug = true; // Set to true to enable transition debug printing
     const bool transtion_printing_debug_adventure = false; 
     const bool transition_printing_debug_private_eye = true;
-    //const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
     virtual Node* get_branch(ALEInterface &env,
+                             const std::vector<Action> &prefix,
+                             Node *root,
+                             float last_reward,
+                             std::deque<Action> &branch) const{
+        if(actions_.size() > 0) {
+            branch.insert(branch.end(), actions_.begin(), actions_.end());
+            actions_.clear();
+            return root;
+        }else {
+            return get_branchs(env, prefix, root, last_reward, branch);
+        }
+    }
+    //const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
+    virtual Node* get_branchs(ALEInterface &env,
                              const std::vector<Action> &prefix,
                              Node *root,
                              float last_reward,
@@ -515,7 +531,7 @@ struct BfsIW : SimPlanner {
                 }
             }
             
-            // check termination at this node
+            // check termination at this node 
             if( node->terminal_ ) {
                 logging::Logger::Continuation(logging::Logger::Debug) << "t" << "," << std::flush;
                 continue;

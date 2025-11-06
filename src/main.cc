@@ -439,10 +439,10 @@ int main(int argc, char **argv) {
         //std::cout << "simulator size " << sim.getScreen().arraySize() << std::endl;
         
     }
-
+    bool use_fixed_action_sequence = false; 
     // construct planner
     Planner *planner = nullptr;
-    if( opt_fixed_action_sequence != "none" ) {
+    if( opt_fixed_action_sequence != "none" && use_fixed_action_sequence) {
         vector<Action> actions;
         parse_action_sequence(opt_fixed_action_sequence, actions);
         planner = new FixedPlanner(actions);
@@ -498,7 +498,11 @@ int main(int argc, char **argv) {
             bool sketches = false;
             if(opt_printing_sketches > 0) {
                 sketches = true;
-            }
+            }     
+            vector<Action> actions;
+            if(opt_fixed_action_sequence != "none") {
+                parse_action_sequence(opt_fixed_action_sequence, actions);
+            }            
             planner = new BfsIW(sim,
                                 opt_frameskip,
                                 opt_use_minimal_action_set,
@@ -513,7 +517,7 @@ int main(int argc, char **argv) {
                                 opt_alpha,
                                 opt_use_alpha_to_update_reward_for_death,
                                 opt_nodes_threshold,
-                                opt_break_ties_using_rewards,games,lookahead_depth,sketches);
+                                opt_break_ties_using_rewards,games,lookahead_depth,sketches,opt_fixed_action_sequence != "none" ? actions : vector<Action>());
         }
         else {
             logging::Logger::Error << "inexistent planner '" << opt_planner_str << "'" << endl;
