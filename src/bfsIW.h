@@ -14,6 +14,7 @@
 #include "logger.h"
 
 struct BfsIW : SimPlanner {
+    mutable size_t pruned_nodes_;
     const int screen_features_;
     const float time_budget_;
     const bool novelty_subtables_;
@@ -63,7 +64,7 @@ struct BfsIW : SimPlanner {
         break_ties_using_rewards_(break_ties_using_rewards), game(games) ,depth_to_search(look_ahead) {
            if(game == 0) initalize_sketches_adventure();
            else if (game == 1) initialize_sketches_private_eye(); 
-           
+        pruned_nodes_ = 0;
            //initialize_sketches_seaquest();
            /* if(game == 0) initialize_sketches();
             else if (game == 1) initialize_sketches_breakout(); 
@@ -123,7 +124,7 @@ struct BfsIW : SimPlanner {
 
         // reset stats and start timer
         reset_stats();
-        float start_time = Utils::read_time_in_seconds();
+        float start_time = Utils::read_time_in_seconds();                   
         float debug_time = 0.0f;
         float debug_time_stop = 0.0f;                        
         // novelty table
@@ -167,7 +168,9 @@ struct BfsIW : SimPlanner {
         root->normalize_depth();
         root->reset_frame_rep_counters(frameskip_);
         root->recompute_path_rewards(root);
-
+        if(root->action_ == 4) {
+            printing_screen(root->screen_pixels_);
+        }
         // construct/extend lookahead tree
         if( int(root->num_nodes()) < nodes_threshold_ ) {
             bfs(prefix, root, novelty_table_map);
@@ -230,7 +233,22 @@ struct BfsIW : SimPlanner {
             }*/
            
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
-            if( pres != 0 ) {
+            bool skip = false;
+            /*
+            if(root->pre[0]){
+                 std::vector<int> action_series = {
+                            4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,
+                            3,3,3,3,3,3,3,5,3,3,3,3,3,3,3,5,5,0,0,5,2,5,5,5,0,1,5,5,4,4,4,5,2,2,2,3,
+                            3,3,2,2,2,4,2,4,4,4,4,4,4,4,4,4,4,4,4,2,4,2,4,4,4,4,2,4,4,4,2,2,2,4,4,4,
+                            4,4,4
+                };
+                for( int act: action_series){
+                    branch.push_back(static_cast<Action>(act));
+                }
+                skip = true;
+            }
+            */
+            if( pres != 0 && !skip ) {
                 if(transition_printing_debug)   std::cout << "sketches exploitation with depth lookahead" << std::endl;
                 // Use depth-based sketch evaluation (e.g., look 3 steps ahead)
                  //trial using fulfillment branch
@@ -389,7 +407,7 @@ struct BfsIW : SimPlanner {
                 }
                 */
             } 
-            else {
+            else if( !skip) {
                 std::cout << "random actions" << std::endl;
                 if( random_actions_ ) {
                     random_decision_ = true;
@@ -411,7 +429,7 @@ struct BfsIW : SimPlanner {
                                       << std::endl;
             }
             // make sure states along branch exist (only needed when doing partial caching)
-            generate_states_along_branch(root, branch, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
+            if(!skip) generate_states_along_branch(root, branch, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
 
             // print branch
             assert(!branch.empty());
@@ -427,6 +445,7 @@ struct BfsIW : SimPlanner {
         total_time_ = Utils::read_time_in_seconds() - start_time + debug_time_stop;
         print_stats(logging::Logger::Stats, *root, novelty_table_map);
         if(impotant_debug) std::cout << "bfs: total time: " << total_time_ << " seconds" << std::endl;
+        std::cout << "Number of expansions: " << num_expansions_  << " Number of pruned nodes: " << pruned_nodes_ << " so a percentage of " << (pruned_nodes_ * 100.0 / num_expansions_) << "%" <<std::endl ;
         // return root node
         return root;
     }
@@ -498,8 +517,10 @@ struct BfsIW : SimPlanner {
             if (fulfillment_branch_.empty()) {
 
                 for (size_t i = 0; i < node->post.size(); ++i) {
-                    if( i == 5 && root->pre[5] ) printing_sketches_debug = true;
-                    if (root->pre[i] && node->post[i]) {
+                    bool skipping = false;
+                    if((root->pre[15] || root->pre[13] || root->pre[14]))printing_sketches_debug = true;
+                    else printing_sketches_debug = false;
+                    if (root->pre[i] && node->post[i] && !skipping) {
                         // Reconstruct branch from root to this node
                         std::deque<Action> temp_branch;
                         Node* temp = node;
@@ -512,17 +533,22 @@ struct BfsIW : SimPlanner {
                         
                         break;
                     }
+                    
                 }
             }
             
             // check termination at this node
             if( node->terminal_ ) {
+                if(printing_sketches_debug){
+                    std:: cout << "Reached terminal node at depth " << node->depth_ << " with action " << node->action_ << std::endl;
+                }
                 logging::Logger::Continuation(logging::Logger::Debug) << "t" << "," << std::flush;
                 continue;
             }
 
             // verify max repetitions of feature atoms (screen mode)
             if( node->frame_rep_ > int(max_rep_) ) {
+                if(printing_sketches_debug) std:: cout << "Reached max repetitions of feature atoms " << node->frame_rep_ << " max rep: "<< max_rep_ << std::endl;
                 logging::Logger::Continuation(logging::Logger::Debug) << "r" << node->frame_rep_ << "," << std::flush;
                 continue;
             }
@@ -537,7 +563,9 @@ struct BfsIW : SimPlanner {
                 // prune node using novelty
                 if( novelty_table[atom] <= node->depth_ ) {
                     //std::cout<< "pruning node with atom " << atom << " at depth " << node->depth_ << std::endl;
+                    if(printing_sketches_debug) std:: cout << "Pruning node with action "<< node->action_ << "and parent node is " << node->parent_->action_ << " due to novelty " << std::endl;
                     logging::Logger::Continuation(logging::Logger::Debug) << "p" << "," << std::flush;
+                    ++pruned_nodes_;
                     continue;
                 }
 
@@ -545,7 +573,7 @@ struct BfsIW : SimPlanner {
                 update_novelty_table(node->depth_, node->feature_atoms_, novelty_table);
             }
             logging::Logger::Continuation(logging::Logger::Debug) << "+" << std::flush;
-
+            //look here very intere
             // expand node
             if( node->frame_rep_ == 0 ) {
                 ++num_expansions_;
@@ -563,6 +591,67 @@ struct BfsIW : SimPlanner {
 
             // add children to queue
             for( Node *child = node->first_child_; child != nullptr; child = child->sibling_ ) q.push(child);
+            //to skip ahead at the start of the game 
+            bool skip = true;
+            if(root->pre[0] && skip){
+            std::deque<Action> temp_branch;
+            // Add the specified series of actions
+            std::vector<int> action_series = {
+                4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,3,3,3,3,
+                3,3,3,5,3,3,3,3,3,3,3,5,5,0,0,5,2,5,5,5,0,1,5,5,4,4,4,5,2,2,2,3,3,3,2,2,2,4,2,4,
+                4,4,4,4,4,4,4,4,4,4,4,2,4,2,4,4,4,4,2,4,4,4,2,2,2,4,4,4,4,4,4
+            };
+            
+            // Start from the root node
+            Node* current_node = root;
+            int i = 0; 
+            // Expand each action in the series sequentially
+            for (int action_value : action_series) {
+                Action action = static_cast<Action>(action_value);
+                Node* existing_child = nullptr;
+                std::cout << "Expanding action: " << action << " at depth " << current_node->depth_ << std::endl;
+                if(i == 0 || current_node->num_children_ > 0) {
+                    i++ ; 
+                    for(Node* child = current_node->first_child_; child != nullptr; child = child->sibling_) {
+                        if(child->action_ == action) {
+                            existing_child = child;
+                            break;
+                        }
+                    } 
+                    current_node = existing_child;
+                }else {
+                    // Expand the current node with this action
+                    current_node->expand(action);
+                    
+                     // Now find which child has the action we just expanded
+                    // The new child is added at the beginning (first_child_)
+                    Node* child_with_action = current_node->first_child_;
+                    /*for (Node* child = current_node->first_child_; child != nullptr; child = child->sibling_) {
+                        if (child->action_ == action) {
+                            child_with_action = child;
+                            break;
+                        }
+                    } */
+                    // Initialize the child's state if needed
+                   
+                    // Move to this child for the next iteration
+                    current_node = child_with_action;
+                }
+                if (current_node->is_info_valid_ != 2) {
+                        update_info(current_node, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
+                }
+                temp_branch.push_back(action);
+            }
+            
+            // Update best_node to the last node in the chain
+            best_node = current_node;
+            fulfillment_branch_.clear();
+            fulfillment_branch_ = temp_branch;
+            q = std::priority_queue<Node*, std::vector<Node*>, NodeComparator>(cmp); // Clear the queue
+            //best_node->expand(action_set_, false); // Expand best_node
+            best_node->visited_ = true;
+            //q.push(best_node);
+            }
             
             simulator_budget_reached = (int(simulator_calls_) < simulator_budget_);
             time_budget_reached = (Utils::read_time_in_seconds() - start_time < time_budget_);
@@ -605,6 +694,7 @@ struct BfsIW : SimPlanner {
         expand_time_ = 0;
         root_height_ = 0;
         random_decision_ = false;
+        pruned_nodes_ = 0;
         fulfillment_branch_.clear();
     }
 
