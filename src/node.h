@@ -106,13 +106,23 @@ class Node {
         new_child->node_ydragon = this->node_ydragon;
         new_child->node_gdragon = this->node_gdragon;
     }
-    void expand(const ActionVect &actions, bool random_shuffle = true) {
+    void expand(const ActionVect &actions, bool random_shuffle = true, bool correct_ordering_of_expansion = false) {
         assert((num_children_ == 0) && (first_child_ == nullptr));
+        /*if( correct_ordering_of_expansion ) {
+            auto temp = actions;
+            std::sort(temp.begin(), temp.end());
+            for( size_t k = 0; k < actions.size(); ++k )               
+                expand(temp[k]);
+            }else{*/
+        
         for( size_t k = 0; k < actions.size(); ++k )
-            expand(actions[k]);
-        //if( random_shuffle ) std::random_shuffle(children_.begin(), children_.end()); // CHECK: missing
+                expand(actions[k]);
+                    //if( random_shuffle ) std::random_shuffle(children_.begin(), children_.end()); // CHECK: missing
+                    
+        //}
         assert(num_children_ == int(actions.size()));
     }
+        
 
     void clear_cached_states() {
         if( is_info_valid_ == 2 ) {

@@ -65,6 +65,11 @@ struct BfsIW : SimPlanner {
            if(game == 0) initalize_sketches_adventure();
            else if (game == 1) initialize_sketches_private_eye(); 
         pruned_nodes_ = 0;
+        std::cout << "BfsIW planner created with parameters:" << std::endl;
+        for(int i = 0; i < action_set_.size(); ++i) {
+            
+            std::cout << "Action " << i << ": " << action_set_[i] << std::endl;
+        }
            //initialize_sketches_seaquest();
            /* if(game == 0) initialize_sketches();
             else if (game == 1) initialize_sketches_breakout(); 
@@ -102,8 +107,8 @@ struct BfsIW : SimPlanner {
     }
     const bool printing_debug = false; // Set to true to enable debug printing
     const bool transition_printing_debug = true; // Set to true to enable transition debug printing
-    const bool transtion_printing_debug_adventure = false; 
-    const bool transition_printing_debug_private_eye = true;
+    const bool transtion_printing_debug_adventure = true; 
+    const bool transition_printing_debug_private_eye = false;
     //const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
     virtual Node* get_branch(ALEInterface &env,
                              const std::vector<Action> &prefix,
@@ -124,6 +129,8 @@ struct BfsIW : SimPlanner {
 
         // reset stats and start timer
         reset_stats();
+        //printing_action_set: 
+        
         float start_time = Utils::read_time_in_seconds();                   
         float debug_time = 0.0f;
         float debug_time_stop = 0.0f;                        
@@ -168,7 +175,8 @@ struct BfsIW : SimPlanner {
         root->normalize_depth();
         root->reset_frame_rep_counters(frameskip_);
         root->recompute_path_rewards(root);
-        if(root->action_ == 4) {
+        bool skip = false ;
+        if(root->action_ == 4 && skip ) {
             printing_screen(root->screen_pixels_);
         }
         // construct/extend lookahead tree
@@ -231,7 +239,6 @@ struct BfsIW : SimPlanner {
                 std::cout << " Killing gdragon inactive " << std::endl; 
                 printing_screen(root->screen_pixels_);
             }*/
-           
             if(printing_debug)  std::cout<< "starting branch computation with preconditions: " << pres << std::endl;
             bool skip = false;
             /*
@@ -350,6 +357,7 @@ struct BfsIW : SimPlanner {
                                     temp_pre = check_sketches_preconditions(best_node->screen_pixels_, best_node->screen_pixels_, *this, best_node,trial_debug);
                                 
                                 }
+                                //if (temp_pre[17] ) printing_screen(best_node->screen_pixels_);
                             }
                           
                             std::cout << "----------------------------------------------------- " << std::endl;
@@ -471,6 +479,13 @@ struct BfsIW : SimPlanner {
         // add tip nodes to queue
         add_tip_nodes_to_queue(root, q);
         logging::Logger::Info << "queue: sz=" << q.size() << std::endl;
+        std::cout<< "Initial queue size: " << q.size() << std::endl;
+        std::priority_queue<Node*, std::vector<Node*>, NodeComparator> temp_q( q);
+        for( size_t i = 0; i < q.size(); ++i ) {
+            Node* temp_node = temp_q.top();
+            temp_q.pop();
+            std::cout << "  node with action " << temp_node->action_ << "and parent is "<< temp_node->parent_->action_ << " at depth " << temp_node->depth_ << std::endl;
+        }
 
         // explore in breadth-first manner
         int count = 0; 
@@ -518,7 +533,7 @@ struct BfsIW : SimPlanner {
 
                 for (size_t i = 0; i < node->post.size(); ++i) {
                     bool skipping = false;
-                    if((root->pre[15] || root->pre[13] || root->pre[14]))printing_sketches_debug = true;
+                    if(root->pre[15] || root->pre[17] )printing_sketches_debug = true;//|| root->pre[13] || root->pre[14]
                     else printing_sketches_debug = false;
                     if (root->pre[i] && node->post[i] && !skipping) {
                         // Reconstruct branch from root to this node
@@ -540,7 +555,7 @@ struct BfsIW : SimPlanner {
             // check termination at this node
             if( node->terminal_ ) {
                 if(printing_sketches_debug){
-                    std:: cout << "Reached terminal node at depth " << node->depth_ << " with action " << node->action_ << std::endl;
+                    std:: cout << "Reached terminal node at depth " << node->depth_ << " with action " << node->action_ << " and parent is " << node->parent_->action_ << std::endl;
                 }
                 logging::Logger::Continuation(logging::Logger::Debug) << "t" << "," << std::flush;
                 continue;
@@ -548,22 +563,55 @@ struct BfsIW : SimPlanner {
 
             // verify max repetitions of feature atoms (screen mode)
             if( node->frame_rep_ > int(max_rep_) ) {
-                if(printing_sketches_debug) std:: cout << "Reached max repetitions of feature atoms " << node->frame_rep_ << " max rep: "<< max_rep_ << std::endl;
+                if(printing_sketches_debug) std:: cout << "Reached max repetitions of feature atoms by node "<< node->action_ << " at depth " << node->depth_ << " whose father is " << node->parent_->action_ << " the frame rep are " << node->frame_rep_ << " max rep: "<< max_rep_ << std::endl;
                 logging::Logger::Continuation(logging::Logger::Debug) << "r" << node->frame_rep_ << "," << std::flush;
                 continue;
             }
-
+            int limit =  int(max_rep_) ;
             // calculate novelty and prune
-            if( node->frame_rep_ == 0 ) {
+            bool increase_expansion = root->pre[15] || root->pre[17] || root->pre[18]; //|| node->pre[13] || node->pre[14]
+            bool skip = true;
+            bool novelty_table_printing = false;
+            //action 2 at depth 2 --> novelty atom value 2 
+            // action 2 at depth 3 ( 3,2) --> novelty atom value 0
+            int action = 2; 
+            int depth = 2; 
+            int parent_actions = 3; 
+            if( node->frame_rep_ == 0 || (increase_expansion && node->frame_rep_ <= limit) ) {
                 // calculate novelty
                 std::vector<int> &novelty_table = get_novelty_table(node, novelty_table_map, novelty_subtables_);
                 int atom = get_novel_atom(node->depth_, node->feature_atoms_, novelty_table);
                 assert((atom >= 0) && (atom < int(novelty_table.size())));
-
+                if(printing_sketches_debug && node->depth_  == depth && node->action_ == action && novelty_table_printing && node->parent_->action_ == parent_actions) {
+                    std:: cout << "Node with action "<< node->action_ << " at depth " << node->depth_ << " and parent node is " << node->parent_->action_ 
+                    << " has novelty atom " << atom << " with value " << novelty_table[atom] << std::endl;
+                    bool any_feature_atom_bigger_1 = false; 
+                    bool any_feature_atom_equal_1 = false;
+                    for(size_t i = 0; i < node->feature_atoms_.size(); ++i) {
+                        std:: cout << " node's feature atom " << i << " value " << node->feature_atoms_[i] << 
+                        " in the novelty table is " << novelty_table[node->feature_atoms_[i]] << std::endl;
+                        if(novelty_table[node->feature_atoms_[i]] > 1) any_feature_atom_bigger_1 = true;
+                        if(novelty_table[node->feature_atoms_[i]] == 1) any_feature_atom_equal_1 = true;
+                    }
+                    std:: cout << "Any feature atom bigger than 1: " << any_feature_atom_bigger_1 << " Any feature atom equal to 1: " << any_feature_atom_equal_1 << std::endl;
+                    std:: cout << "----------------------------------------" << std::endl;
+                    /*std::cout << "printing the novelty table: " << std::endl;
+                    for(size_t i = 0; i < novelty_table.size(); ++i) {
+                        std:: cout << " novelty table atom " << i << " value " << novelty_table[i] << std::endl;
+                    }
+                    std:: cout << "----------------------------------------" << std::endl;*/
+                }
+                
                 // prune node using novelty
-                if( novelty_table[atom] <= node->depth_ ) {
+                //node 2 (child of 3) not expanded as novelty_table[atom ] = 1 for all node->feature_atoms_
+                // why < --> found the same novel atom at a smaller depth before (father or uncle node)
+                // why == --> found the same novel atom at the same depth before (siblings or cosuin node)
+                //so if novelty_table[atom] == node->depth_ && max_rep not reached  --> also same novel atom to appear atleast 2 times before neglected for ever 
+                if( novelty_table[atom] <= node->depth_ &&  !(novelty_table[atom] == node->depth_ && increase_expansion && node->frame_rep_ <= limit)  ) { // &&  !(novelty_table[atom] == node->depth_ && increase_expansion && node->frame_rep_ <= limit)
                     //std::cout<< "pruning node with atom " << atom << " at depth " << node->depth_ << std::endl;
-                    if(printing_sketches_debug) std:: cout << "Pruning node with action "<< node->action_ << "and parent node is " << node->parent_->action_ << " due to novelty " << std::endl;
+                    if(printing_sketches_debug) std:: cout << "Pruning node with action "<< node->action_ << " at depth " << node->depth_ << "and parent node is " << node->parent_->action_ << " due to novelty " << std::endl;
+                    if(printing_sketches_debug) std:: cout  << " novelty table atom " << atom << " value " << novelty_table[atom] << "== node->depth = " << node->depth_ 
+                    << " | increase_expansion = " << increase_expansion << " | node_frame_rep = " << node->frame_rep_ << " <= " << limit << std::endl;
                     logging::Logger::Continuation(logging::Logger::Debug) << "p" << "," << std::flush;
                     ++pruned_nodes_;
                     continue;
@@ -575,14 +623,17 @@ struct BfsIW : SimPlanner {
             logging::Logger::Continuation(logging::Logger::Debug) << "+" << std::flush;
             //look here very intere
             // expand node
-            if( node->frame_rep_ == 0 ) {
+            
+            if( node->frame_rep_ == 0 || (increase_expansion && node->frame_rep_ <= limit) ) {
                 ++num_expansions_;
                 float start_time = Utils::read_time_in_seconds();
                 //false --> true --> randomly shuffling the children
-                node->expand(action_set_, false);
+                if(printing_sketches_debug) std:: cout << "Expanding current node with action "<< node->action_ << " all children and parent node is " << node->parent_->action_ << " at depth " << node->depth_ << std::endl;
+                node->expand(action_set_, false ,increase_expansion );
                 expand_time_ += Utils::read_time_in_seconds() - start_time;
             } else {
                 assert((node->parent_ != nullptr) && (screen_features_ > 0));
+                if(printing_sketches_debug) std:: cout << "Expanding current node with action "<< node->action_ << " same child whose parent is " << node->parent_->action_ << " at depth " << node->depth_ << " due to frame rep " << node->frame_rep_ << std::endl;
                 node->expand(node->action_);
             }
             assert((node->num_children_ > 0) && (node->first_child_ != nullptr));
@@ -592,65 +643,76 @@ struct BfsIW : SimPlanner {
             // add children to queue
             for( Node *child = node->first_child_; child != nullptr; child = child->sibling_ ) q.push(child);
             //to skip ahead at the start of the game 
-            bool skip = true;
+            
             if(root->pre[0] && skip){
-            std::deque<Action> temp_branch;
-            // Add the specified series of actions
-            std::vector<int> action_series = {
-                4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,3,3,3,3,
-                3,3,3,5,3,3,3,3,3,3,3,5,5,0,0,5,2,5,5,5,0,1,5,5,4,4,4,5,2,2,2,3,3,3,2,2,2,4,2,4,
-                4,4,4,4,4,4,4,4,4,4,4,2,4,2,4,4,4,4,2,4,4,4,2,2,2,4,4,4,4,4,4
-            };
-            
-            // Start from the root node
-            Node* current_node = root;
-            int i = 0; 
-            // Expand each action in the series sequentially
-            for (int action_value : action_series) {
-                Action action = static_cast<Action>(action_value);
-                Node* existing_child = nullptr;
-                std::cout << "Expanding action: " << action << " at depth " << current_node->depth_ << std::endl;
-                if(i == 0 || current_node->num_children_ > 0) {
-                    i++ ; 
-                    for(Node* child = current_node->first_child_; child != nullptr; child = child->sibling_) {
-                        if(child->action_ == action) {
-                            existing_child = child;
-                            break;
-                        }
-                    } 
-                    current_node = existing_child;
-                }else {
-                    // Expand the current node with this action
-                    current_node->expand(action);
+                std::deque<Action> temp_branch;
+                // Add the specified series of actions
+                std::vector<int> action_series = {
+                4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,
+                5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,3,3,3,3,
+                3,3,3,5,3,3,3,3,5,3,3,3,5,0,0,5,2,5,3,3,
+                3,3,1,3,5,5,5,5,4,4,4,4,5,4,4,2,4,2,4,2,
+                3,3,3,2,2,2,2,4,4,4,4,4,4,2,4,4,4,4,4,4,
+                4,2,4,4,4,4,4,4,4,2,2,2,2,4,4,4,4,5,4,4,
+                4,2,2,2,3,3
+                };
+                /* 3,2,2, //extra to complete the 15 sketch (finds it with the current changes )
+                4,4, // found on its own --> 16
+                4,2,(2) // 17 extra (same problem as 15) [finds it with current changes ]
+                2,4
+                */ 
+                // Start from the root node
+                Node* current_node = root;
+                int i = 0; 
+                // Expand each action in the series sequentially
+                for (int action_value : action_series) {
+                    Action action = static_cast<Action>(action_value);
+                    Node* existing_child = nullptr;
+                    std::cout << "Expanding action: " << action << " at depth " << current_node->depth_ << std::endl;
+                    if(i == 0 || current_node->num_children_ > 0) {
+                        i++ ; 
+                        for(Node* child = current_node->first_child_; child != nullptr; child = child->sibling_) {
+                            if(child->action_ == action) {
+                                existing_child = child;
+                                break;
+                            }
+                        } 
+                        current_node = existing_child;
+                    }else {
+                        // Expand the current node with this action
+                        current_node->expand(action);
+                        
+                        // Now find which child has the action we just expanded
+                        // The new child is added at the beginning (first_child_)
+                        Node* child_with_action = current_node->first_child_;
+                        /*for (Node* child = current_node->first_child_; child != nullptr; child = child->sibling_) {
+                            if (child->action_ == action) {
+                                child_with_action = child;
+                                break;
+                            }
+                        } */
+                        // Initialize the child's state if needed
                     
-                     // Now find which child has the action we just expanded
-                    // The new child is added at the beginning (first_child_)
-                    Node* child_with_action = current_node->first_child_;
-                    /*for (Node* child = current_node->first_child_; child != nullptr; child = child->sibling_) {
-                        if (child->action_ == action) {
-                            child_with_action = child;
-                            break;
-                        }
-                    } */
-                    // Initialize the child's state if needed
-                   
-                    // Move to this child for the next iteration
-                    current_node = child_with_action;
+                        // Move to this child for the next iteration
+                        current_node = child_with_action;
+                    }
+                    if (current_node->is_info_valid_ != 2) {
+                            update_info(current_node, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
+                    }
+                    temp_branch.push_back(action);
                 }
-                if (current_node->is_info_valid_ != 2) {
-                        update_info(current_node, screen_features_, alpha_, use_alpha_to_update_reward_for_death_);
-                }
-                temp_branch.push_back(action);
-            }
-            
-            // Update best_node to the last node in the chain
-            best_node = current_node;
-            fulfillment_branch_.clear();
-            fulfillment_branch_ = temp_branch;
-            q = std::priority_queue<Node*, std::vector<Node*>, NodeComparator>(cmp); // Clear the queue
-            //best_node->expand(action_set_, false); // Expand best_node
-            best_node->visited_ = true;
-            //q.push(best_node);
+                
+                // Update best_node to the last node in the chain
+                best_node = current_node;
+                fulfillment_branch_.clear();
+                fulfillment_branch_ = temp_branch;
+                q = std::priority_queue<Node*, std::vector<Node*>, NodeComparator>(cmp); // Clear the queue
+                //best_node->expand(action_set_, false); // Expand best_node
+                best_node->node_ydragon = true; // Manually set node_ydragon to true
+                best_node->node_gdragon = true; // Manually set node_gdragon to true
+                best_node->node_bkeyt = true; // Manually set node_bkeyt to true
+                best_node->visited_ = true;
+                //q.push(best_node);
             }
             
             simulator_budget_reached = (int(simulator_calls_) < simulator_budget_);
