@@ -55,7 +55,18 @@ struct SimPlanner : Planner {
     mutable size_t get_atoms_calls_;
     mutable float get_atoms_time_;
     mutable float novel_atom_time_;
+
+    mutable size_t pre_sketch_feature_calls_;
+    mutable float pre_sketch_feature_time_;
+    mutable float pre_sketch_novelty_time_;
+
+    mutable size_t post_sketch_feature_calls_;
+    mutable float post_sketch_feature_time_;
+    mutable float post_sketch_novelty_time_;
     mutable float update_novelty_time_;
+
+    
+
     mutable bool ball_spawned_;
     ALEState initial_sim_state_;
     ActionVect action_set_;
@@ -104,6 +115,12 @@ struct SimPlanner : Planner {
         get_atoms_calls_ = 0;
         get_atoms_time_ = 0;
         novel_atom_time_ = 0;
+        pre_sketch_feature_calls_ = 0;
+        pre_sketch_feature_time_ = 0;
+        pre_sketch_novelty_time_ = 0;
+        post_sketch_feature_calls_ = 0;
+        post_sketch_feature_time_ = 0;
+        post_sketch_novelty_time_ = 0;
 
     }
 
@@ -397,6 +414,8 @@ struct SimPlanner : Planner {
     const bool printing_debug_adventure = false; // Set to true to enable debug printing for adventure mode
     const bool printing_sketches_functions = false; 
     mutable bool printing_sketches_debug = false; 
+                
+    mutable bool printing_sketches_in_general = false; //bool to enable debugging printing of sketches
     mutable Node* current_node = nullptr; // Pointer to the current node being processed
     mutable int root_dist_to_sword = 0; 
     mutable int root_dist_to_key = 0;
@@ -865,6 +884,7 @@ struct SimPlanner : Planner {
         //calculate_distance_from_goal(screen_pixels); // Update Last_room_color based on current screen pixels
         return regions;
     }
+    
     int identify_room_from_database(const std::vector<pixel_t>& scene_img) const {
         if (room_database_.empty()) {
             if(printing_debug) std::cout << "Database is empty, cannot identify room." << std::endl;
@@ -1415,6 +1435,7 @@ struct SimPlanner : Planner {
     }
     
     // Detect items in the entire screen
+     //active use of prev for chalice detection --> changes color for debugging 
     std::vector<std::pair<std::string, std::pair<int, int>>> detect_items_entire_screen(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& prev_pixels, bool printing = false) const {
         std::vector<std::pair<std::string, std::pair<int, int>>> detected_items;
         auto regions = regions_for_cube(screen_pixels);
@@ -1473,7 +1494,6 @@ struct SimPlanner : Planner {
             }
             else if (size >= 26 && size <= 30 && color_match(color, COLORS.at("black"))) {
                 item_type = "black_key";
-                //temporarily adding yellow as a nogo to motivate the cube to move further away
             } else if (size >= 66 && size <= 68 && check_pattern_chalice(screen_pixels, cluster)) {
                 if(printing ){
                     bool same = true; 
@@ -1502,6 +1522,7 @@ struct SimPlanner : Planner {
     }
     
     // Detect items near cube position
+      //active use of prev for chalice detection --> changes color for debugging 
     std::vector<std::pair<std::string, std::pair<int, int>>> detect_items_around_cube(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& prev_pixels, const std::pair<int, int>& cube_pos) const {
         if (cube_pos.first == -1 || cube_pos.second == -1) {
             return {};
@@ -1571,6 +1592,7 @@ struct SimPlanner : Planner {
     }
     
     //chalice pattern matching
+      //active use of prev for chalice detection --> changes color for debugging 
     bool check_pattern_chalice(const std::vector<pixel_t>& screen_pixels, const std::set<std::pair<int, int>>& cluster) const {
         // Chalice pattern definition
         const std::vector<std::vector<pixel_t>> pattern_chalice = {
@@ -1998,6 +2020,7 @@ struct SimPlanner : Planner {
         return gdragon;
     }
     // Item distance function (MANHATTAN)
+     //active use of prev for chalice detection --> changes color for debugging 
     int get_item_distance(const std::string& item_type, const std::vector<pixel_t>& screen_pixels, const std::vector<pixel_t>& previous_pixels) const {
         const int MAX_DISTANCE = -1;
         auto cube_coords = highlight_cube(screen_pixels, screen_pixels);
@@ -2261,6 +2284,7 @@ struct SimPlanner : Planner {
      return count >= 15; // Assuming door_open color is at this pixel 80 123
     }
     // Check if cube touching item or already touched --> carrying item
+      //active use of prev for chalice detection --> changes color for debugging 
     bool detect_ykey_touching_cube(const std::vector<pixel_t>& screen_pixels,const std::vector<pixel_t>& prev_image, const std::pair<int, int>& cube_poss, std::string type, bool printing = false) const {
         //changed added find_cube_using_database_comparison
         std::pair<int, int> cube_pos = cube_poss;
@@ -2686,10 +2710,14 @@ struct SimPlanner : Planner {
 
     std::vector<bool> check_sketches_preconditions (const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const SimPlanner& planner, Node* node = nullptr, bool printing = false, bool is_root = false) const{
             std::vector<bool> sketches_pre(planner.sketches_.size(), false);
+
+            //update the analysis features
+            pre_sketch_feature_calls_++;
+            float start_time = Utils::read_time_in_seconds();
             if( node != nullptr) set_item_state(node, printing);
             //changed 
             //if(is_root) setting_dist_state_from_root(node);
-            if(printing ||is_root) printing_sketches_ = true;
+            if((printing || is_root) && printing_sketches_in_general)  printing_sketches_ = true;
             for (size_t i = 0; i < sketches_.size(); ++i) {  
                     sketches_pre[i] = planner.sketches_[i].precondition(planner, pre, post);
             }
@@ -2699,7 +2727,7 @@ struct SimPlanner : Planner {
                     
                 }else if (i == planner.priority_) sketches_pre[i] = sketches_[i].precondition(planner, pre,post); 
                 else sketches_pre[i] = false;*/
-            if(printing) {
+            if(printing || is_root) {
                 std::cout << "Sketches pre: ";
                 for (const auto& sketch : sketches_pre) {
                     std::cout << sketch << " ";
@@ -2708,17 +2736,20 @@ struct SimPlanner : Planner {
             }
             printing_sketches_ = false;
             if( node != nullptr) setting_node_state(node, printing);
+            pre_sketch_feature_time_ += Utils::read_time_in_seconds() - start_time;
             return sketches_pre;
     }
-    std::vector<bool> check_sketches_goals(const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const std::vector<pixel_t>& prevs, const SimPlanner& planner,   Node* node = nullptr, bool printing = false) const {
+    std::vector<bool> check_sketches_goals(const std::vector<pixel_t>& pre, const std::vector<pixel_t>& post, const std::vector<pixel_t>& prevs, const SimPlanner& planner,   Node* node = nullptr, bool printing = false, bool is_root = false) const {
         std::vector<bool> sketches_post(sketches_.size(), false);
+        post_sketch_feature_calls_++;
+        float start_time = Utils::read_time_in_seconds();
         // Check current priority sketch
         if( node != nullptr) set_item_state(node, printing);
-        if (printing ) printing_sketches_ = true;
+        if ((printing) && printing_sketches_in_general) printing_sketches_ = true;
         for(size_t i = 0; i < planner.sketches_.size(); ++i) {
             sketches_post[i] = planner.sketches_[i].goal(planner, pre, post, prevs);
         }
-        if(printing) {
+        if(printing || is_root) {
                 std::cout << "Sketches post: ";
                 for (const auto& sketch : sketches_post) {
                     std::cout << sketch << " ";
@@ -2727,6 +2758,7 @@ struct SimPlanner : Planner {
         }
         if( node != nullptr) setting_node_state(node,printing);
         printing_sketches_ = false;
+        post_sketch_feature_time_ += Utils::read_time_in_seconds() - start_time;
         return sketches_post;
     }
     

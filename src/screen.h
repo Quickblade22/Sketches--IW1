@@ -36,7 +36,7 @@ struct MyALEScreen {
     static const size_t num_bpros_features_t2_ = 128; // (dc,dr,k,k) where dc = dr = 0, number equal to 128
     static const size_t num_bpros_features_ = num_bpros_features_t0_ + num_bpros_features_t1_ + num_bpros_features_t2_; // 6,856,768
     static const size_t num_bprot_features_ = 31 * 27 * 128 * 128; // 13,713,408
-    static const size_t num_adventure_features_ = 10+4*75; //90
+    static const size_t num_adventure_features_ = 14+4*75; //310
     static const size_t adventure_base_ = num_basic_features_ + num_bpros_features_ + num_bprot_features_;
     std::vector<bool> adventure_features_bitmap_;
     static const size_t adventure_room_start_ = adventure_base_;
@@ -340,20 +340,37 @@ struct MyALEScreen {
         // 1. Room detection
         const pixel_t room_color = screen_.get(5, 5);
         int room_id = -1;
-        
+        //r = y, c = x
         if (color_match(room_color, COLORS.at("yellow"))) {
             const pixel_t special_color = screen_.get(80, 80);
             room_id = color_match(special_color, COLORS.at("yellow")) ? 1 : 0;
         } else if (color_match(room_color, COLORS.at("green"))) room_id = 2;
         else if (color_match(room_color, COLORS.at("purple"))) room_id = 3;
         else if (color_match(room_color, COLORS.at("light_green"))) room_id = 5;
-        else if (color_match(room_color, COLORS.at("blue"))) room_id = 6;
-        else if (color_match(room_color, COLORS.at("black"))) room_id = 7;
-        else if (color_match(room_color, COLORS.at("pink"))) room_id = 9;
+        else if  (color_match(room_color, COLORS.at("blue"))) {
+            if(color_match(screen_.get(6, 79), COLORS.at("blue"))){
+                if(color_match(screen_.get(194, 79), COLORS.at("blue"))){
+                    room_id = 10;
+                }else{
+                    room_id = 6;
+                }
+            }else if(color_match(screen_.get(185, 77), COLORS.at("blue"))){
+                room_id = 7;
+            }else if(color_match(screen_.get(8, 20), COLORS.at("blue"))){
+                room_id = 8;
+            }else{
+                room_id = 9;
+          
+            }
+        }
+        else if (color_match(room_color, COLORS.at("black"))) room_id = 11;
+        else if (color_match(room_color, COLORS.at("pink"))) room_id = 13;
         else if (color_match(room_color, COLORS.at("red"))) {
-            // Special handling for red rooms
-            if (Last_room_color == 3) room_id = 4;
-            else if (Last_room_color == 7 || Last_room_color == 9) room_id = 8;
+           if(color_match(screen_.get(190, 67), COLORS.at("red")) &&color_match(screen_.get(190, 190), COLORS.at("red")) ){
+                room_id = 4;
+            }else{
+                room_id = 12;
+            }
         }
         
         if (room_id >= 0) {
@@ -365,23 +382,23 @@ struct MyALEScreen {
                 Last_room_color = room_id;
             }
         }
-        
+        auto regions = get_room_regions(Last_room_color);
         // 2. Cube detection
-        auto cube_pos = find_cube_without_reference();
+        auto cube_pos = find_cube_without_reference(regions);
         if (cube_pos.first == -1) return;
         
-        int cube_center_x = cube_pos.first + 2;
-        int cube_center_y = cube_pos.second + 4;
+        int cube_center_x = cube_pos.first;
+        int cube_center_y = cube_pos.second;
         
         // 3. Item distance features
-        add_item_distance(screen_state_atoms, adventure_base_+10, 0, cube_center_x, cube_center_y); // ykey
-        add_item_distance(screen_state_atoms, adventure_base_+23, 1, cube_center_x, cube_center_y); // bkey
-        add_item_distance(screen_state_atoms, adventure_base_+36, 2, cube_center_x, cube_center_y); // ysword
-        add_item_distance(screen_state_atoms, adventure_base_+49, 3, cube_center_x, cube_center_y); // chalice
+        add_item_distance(screen_state_atoms, adventure_base_+10, 0, cube_center_x, cube_center_y, room_id); // ykey
+        add_item_distance(screen_state_atoms, adventure_base_+23, 1, cube_center_x, cube_center_y, room_id); // bkey
+        add_item_distance(screen_state_atoms, adventure_base_+36, 2, cube_center_x, cube_center_y, room_id); // ysword
+        add_item_distance(screen_state_atoms, adventure_base_+49, 3, cube_center_x, cube_center_y, room_id); // chalice
     }
 
-    void add_item_distance(std::vector<int> &atoms, int base, int item_type, int cube_x, int cube_y) {
-        int dist = get_item_distance(item_type, cube_x, cube_y);
+    void add_item_distance(std::vector<int> &atoms, int base, int item_type, int cube_x, int cube_y, int room_id) {
+        int dist = get_item_distance(item_type, cube_x, cube_y, room_id);
         int bin = discretize_distance(dist);
         int feature_index = pack_adventure_item_feature(item_type, bin);
         
@@ -409,9 +426,9 @@ struct MyALEScreen {
         return std::abs(static_cast<int>(c1) - static_cast<int>(c2)) <= 5;
     }
     
-    int get_item_distance(int item_type, int cube_x, int cube_y) const {
+    int get_item_distance(int item_type, int cube_x, int cube_y, int room_id)  {
     
-        auto items = detect_items_entire_screen(); // Assuming screen_ has a method to get items
+        auto items = detect_items_entire_screen(room_id); // Assuming screen_ has a method to get items
         for( const auto& item : items) {
             const auto& [item_name, coords] = item;
             int x = coords.first;
@@ -430,28 +447,298 @@ struct MyALEScreen {
         return -1;
     }
 
-    std::pair<int, int> find_cube_without_reference() const {
-        // Simplified cube detection
-        const pixel_t cube_color = screen_.get(5, 5);
-        const int search_margin = 20;
-        
-        for (int y = search_margin; y < height_ - search_margin; y++) {
-            for (int x = search_margin; x < width_ - search_margin; x++) {
-                if (color_match(screen_.get(y, x), cube_color) &&
-                    color_match(screen_.get(y+1, x), cube_color) &&
-                    color_match(screen_.get(y, x+1), cube_color) &&
-                    color_match(screen_.get(y+1, x+1), cube_color)) {
-                    return {x, y};
+    std::pair<int, int> find_cube_without_reference( std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions)  {
+        std::pair<int,int> cube_position = {-1, -1}; // Default position if no cube is found
+        for (const auto& region : regions) {
+            int x1 = region.first.first;
+            int y1 = region.first.second;
+            int x2 = region.second.first;
+            int y2 = region.second.second;
+            cube_position = find_cube_candidates(x1, y1, x2, y2);
+            if( cube_position.first != -1 && cube_position.second != -1) {
+                return cube_position; // Return the first found cube position
+            }
+
+        }
+        return cube_position; 
+    }
+    std::pair<int, int> find_cube_candidates( int x1, int y1, int x2, int y2)  {
+        pixel_t cube_color = screen_.get(5, 5);
+        int adventure_cube_width = 4;
+        int adventure_cube_height = 8;
+        int SCREEN_WIDTH = width_;
+        int SCREEN_HEIGHT = height_;
+        std::vector<std::pair<int, int>> candidates;
+
+        for (int y = y1; y <= y2 - adventure_cube_height; ++y) {
+            for (int x = x1; x <= x2 - adventure_cube_width; ++x) {
+                int cx = x + adventure_cube_width / 2;
+                int cy = y + adventure_cube_height / 2;
+                
+                // Check center and surrounding pixels
+                bool valid = true;
+                std::vector<std::pair<int, int>> points = {
+                    {cx, cy},  // Center
+                    {cx - adventure_cube_width/4, cy},  // Left
+                    {cx + adventure_cube_width/4, cy},  // Right
+                    {cx, cy - adventure_cube_height/4}, // Top
+                    {cx, cy + adventure_cube_height/4}  // Bottom
+                };
+                
+                for (const auto& pt : points) {
+                    if (pt.first < 0 || pt.first >= SCREEN_WIDTH || 
+                        pt.second < 0 || pt.second >= SCREEN_HEIGHT) {
+                        valid = false;
+                        break;
+                    }
+                    
+                   
+                    if (!color_match(screen_.get(pt.second, pt.first), cube_color)) {
+                        valid = false;
+                        break;
+                    }
+                }
+                
+                if (!valid) continue;
+                if (!check_surrounding_grey(x, y)) continue; // Updated
+                candidates.push_back({x, y});  // Store candidate
+            }
+        }
+           // Select best candidate based on pixel density
+        if (candidates.empty()) {
+             //std::cout<< "candidates empty" << std::endl;
+            return {-1, -1};
+        }
+
+        int best_count = -1;
+        std::pair<int, int> best_candidate = {-1, -1};
+        for (const auto& cand : candidates) {
+            int count = count_matching_pixels(cand.first, cand.second, cube_color);
+            if (count > best_count) {
+                best_count = count;
+                best_candidate = cand;
+            }
+        }
+        if (best_candidate.first == -1){
+             //std::cout<< "no best candidate" << std::endl;
+        }
+        if(printing_debug) std::cout << "Best candidate: (" << best_candidate.first << ", " << best_candidate.second << ") with count: " << best_count << std::endl;
+        //std::cout << "cube found: " << best_candidate.first << " " << best_candidate.second << std::endl;
+        return best_candidate;
+      }
+    int count_matching_pixels(int x, int y, pixel_t cube_color)  {
+        int count = 0;
+        int adventure_cube_width = 4;
+        int adventure_cube_height = 8;
+        int SCREEN_WIDTH = width_;
+        int SCREEN_HEIGHT = height_;
+        for (int dy = 0; dy < adventure_cube_height; ++dy) {
+            for (int dx = 0; dx < adventure_cube_width; ++dx) {
+                int px = x + dx;
+                int py = y + dy;
+                if (px < 0 || px >= SCREEN_WIDTH || py < 0 || py >= SCREEN_HEIGHT) {
+                    continue;
+                }
+                if (color_match(screen_.get(py, px), cube_color)) {
+                    count++;
                 }
             }
         }
-        return {-1, -1};
+        return count;
     }
+    bool check_surrounding_grey(size_t x, size_t y)  {
+        int adventure_cube_width = 4;
+        int adventure_cube_height = 8;
+       bool left = (x-1 >= 0) && is_grey(screen_.get(y, x - 1));
+       bool right = x+ adventure_cube_width+1 < width_ && is_grey(screen_.get(y, x + adventure_cube_width+1));
+       bool up =( y-1 >= 0) && is_grey(screen_.get(y - 1, x));
+       bool down = y+ adventure_cube_height+1 < height_ && is_grey(screen_.get(y + adventure_cube_height+1, x));
+       bool is_black = color_match(COLORS.at(std::string("black")), screen_.get(5, 5)); 
+       if (is_black){
+        left = (x-1 >= 0) &&  !color_match(COLORS.at(std::string("black")), screen_.get(y, x - 1));
+        right = x+ adventure_cube_width+1 < width_ && !color_match(COLORS.at(std::string("black")),screen_.get(y, x + adventure_cube_width+1));
+        up = (y-1 >= 0) && !color_match(COLORS.at(std::string("black")),screen_.get(y - 1, x));
+        down = y+ adventure_cube_height+1 < height_ && !color_match(COLORS.at(std::string("black")),screen_.get(y + adventure_cube_height+1, x)); 
+       }
+       return (left || right) && ( up || down); 
+    }
+    std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> get_room_regions(int room_id)  {
+        std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions;
+
+        bool is_yellow = room_id == 0 || room_id == 1;
+        bool is_throne = room_id == 0 ;
+        bool is_black = room_id == 11;
+        bool is_red = room_id == 4 || room_id == 12;
+        bool late_red = room_id == 12;
+        bool is_pink =  room_id == 13;
+        bool is_blue = room_id >= 6 && room_id <= 10;
+        bool is_green = room_id == 2 ;
+        bool is_light_green = room_id == 5 ;
+        bool is_purple = room_id == 3;
+
+        // Add entrance areas
+        std::pair<std::pair<int,int>, std::pair<int,int>> entrance_down = {{63, 170}, {96, 195}};
+        std::pair<std::pair<int,int>, std::pair<int,int>> entrance_up = {{63, 1}, {96, 26}};
+        
+        
+        if (is_green || is_light_green || is_red||is_pink) {
+            regions.push_back(entrance_up);
+        }else if (!is_blue){
+            regions.push_back(entrance_down);
+        }
+       
+        // Special case for red room when coming from black or pink
+        if (is_red && late_red) {
+            regions.push_back(entrance_down);
+        }
+
+        if(is_black){
+            // Black throne room
+                regions.push_back({{7, 18}, {40, 178}});
+                regions.push_back({{119, 18}, {151, 178}});
+                regions.push_back({{7, 82}, {47, 178}});
+                regions.push_back({{111, 82}, {151, 178}});
+                regions.push_back({{7, 146}, {151, 178}});
+                regions.push_back({{63, 146}, {96, 195}});
+                regions.push_back({{71, 114}, {88, 154}}); //door
+        } else if (is_yellow && is_throne) {
+                // Yellow throne room
+                regions.push_back({{7, 18}, {40, 178}});
+                regions.push_back({{119, 18}, {152, 178}});
+                regions.push_back({{7, 82}, {48, 146}});
+                regions.push_back({{111, 82}, {151, 146}});
+                regions.push_back({{7, 147}, {152, 178}});
+                regions.push_back({{71, 114}, {88, 154}}); //door
+                //std::cout<<"yellow_throne_room"<<std::endl; 
+        } else if(is_yellow) {
+
+                regions.push_back({{7, 18}, {152, 179}});
+        }else if (is_red || is_pink) {
+            regions.push_back({{7, 18}, {152, 179}});
+        } 
+        else if (is_green || is_light_green || is_purple) {
+
+            if (is_light_green) {
+                Last_room_color = 5; // Set Last_room_color to 4 for normal light green room
+                regions.push_back({{12, 18}, {160, 178}});  // x >= 12
+            } else if (is_purple) {
+                Last_room_color = 3; // Set Last_room_color to 3 for normal purple room
+                regions.push_back({{0, 18}, {147, 178}});   // x <= 147
+            }else{
+                Last_room_color = 2; // Set Last_room_color to 2 for normal green room
+                regions.push_back({{0, 18}, {160, 178}});
+            }
+        } 
+        
+        else if (is_blue) {
+            // Determine blue room type
+                // Blue room 1
+                if (room_id == 10) {
+                    regions.push_back({{0, 18}, {160, 50}});       // Top-left
+                    regions.push_back({{38, 18}, {48, 114}});      // Top-right
+                    regions.push_back({{111, 18}, {120, 114}});    // Upper-left
+                    regions.push_back({{15, 82}, {72, 115}});      // Upper-right
+                    regions.push_back({{87, 82}, {144, 115}});     // Upper-right
+                    regions.push_back({{15, 82}, {24, 179}});      // Upper-right
+                    regions.push_back({{135, 82}, {144, 179}});    // Upper-right
+                    regions.push_back({{135, 146}, {160, 179}});   // Upper-right
+                    regions.push_back({{0, 146}, {24, 179}});      // Upper-right
+                    regions.push_back({{103, 146}, {128, 179}});   // Upper-right
+                    regions.push_back({{31, 146}, {56, 179}});     // Upper-right
+                    regions.push_back({{31, 146}, {40, 194}});     // Upper-right
+                    regions.push_back({{47, 146}, {56, 194}});     // Upper-right
+                    regions.push_back({{103, 146}, {112, 194}});   // Upper-right
+                    regions.push_back({{119, 146}, {127, 194}});   // Upper-right
+                    regions.push_back({{63, 82}, {72, 195}});      // Upper-right
+                    regions.push_back({{87, 82}, {96, 195}});      // Upper-right
+                } else if ( room_id == 6) {
+                    regions.push_back({{0, 19}, {24, 50}});
+                    regions.push_back({{134, 19}, {160, 50}});
+                    regions.push_back({{15, 50}, {24, 83}});
+                    regions.push_back({{135, 50}, {144, 83}});
+                    regions.push_back({{0, 83}, {24, 114}});
+                    regions.push_back({{31, 1}, {40, 178}});
+                    regions.push_back({{119, 1}, {128, 178}});
+                    regions.push_back({{0, 148}, {160, 178}});
+                    regions.push_back({{47, 1}, {55, 114}});
+                    regions.push_back({{103, 1}, {112, 114}});
+                    regions.push_back({{47, 83}, {111, 114}});
+                    regions.push_back({{63, 1}, {72, 50}});
+                    regions.push_back({{87, 1}, {96, 50}});
+                    regions.push_back({{63, 18}, {96, 50}});
+                    regions.push_back(entrance_down);
+                }else if (room_id == 7) {
+
+                // Blue room 4
+                regions.push_back({{0, 146}, {23, 178}});
+                regions.push_back({{135, 146}, {160, 178}});
+                regions.push_back({{0, 18}, {23, 50}});
+                regions.push_back({{135, 18}, {160, 50}});
+                regions.push_back({{15, 18}, {23, 114}});
+                regions.push_back({{135, 18}, {144, 114}});
+                regions.push_back({{15, 83}, {144, 114}});
+                regions.push_back({{31, 83}, {127, 178}});
+                regions.push_back({{31, 1}, {40, 50}});
+                regions.push_back({{103, 1}, {112, 50}});
+                regions.push_back({{119, 1}, {127, 50}});
+                regions.push_back({{47, 1}, {56, 50}});
+                regions.push_back({{103, 19}, {127, 50}});
+                regions.push_back({{31, 19}, {56, 50}});
+            } else if (room_id == 8) {
+                // Blue room 3
+                regions.push_back({{0, 19}, {31, 50}});
+                regions.push_back({{128, 19}, {160, 50}});
+                regions.push_back({{15, 50}, {31, 114}});
+                regions.push_back({{128, 50}, {143, 114}});
+                regions.push_back({{0, 147}, {23, 178}});
+                regions.push_back({{136, 147}, {160, 178}});
+                regions.push_back({{15, 147}, {23, 194}});
+                regions.push_back({{136, 147}, {143, 194}});
+                regions.push_back({{31, 146}, {63, 178}});
+                regions.push_back({{31, 146}, {39, 194}});
+                regions.push_back({{96, 146}, {127, 178}});
+                regions.push_back({{63, 1}, {96, 51}});
+                regions.push_back({{72, 1}, {88, 195}});
+                regions.push_back({{39, 18}, {56, 114}});
+                regions.push_back({{103, 18}, {120, 114}});
+                regions.push_back({{39, 82}, {120, 114}});
+            } 
+            else {
+                Last_room_color = 9; 
+                // Replace blue room type 2 region definitions with:
+                regions.push_back({{15, 1}, {23, 50}});
+                regions.push_back({{135, 1}, {143, 50}});
+                regions.push_back({{0, 18}, {23, 50}});
+                regions.push_back({{135, 18}, {160, 50}});
+                regions.push_back({{0, 83}, {39, 114}});
+                regions.push_back({{120, 83}, {160, 114}});
+                regions.push_back({{0, 147}, {23, 178}});
+                regions.push_back({{135, 147}, {160, 178}});
+                regions.push_back({{16, 83}, {23, 178}});
+                regions.push_back({{136, 83}, {144, 178}});
+                regions.push_back({{31, 83}, {40, 195}});
+                regions.push_back({{120, 83}, {128, 195}});
+                regions.push_back({{119, 1}, {127, 50}});
+                regions.push_back({{31, 1}, {40, 50}});
+                regions.push_back({{103, 19}, {127, 50}});
+                regions.push_back({{31, 19}, {55, 50}});
+                regions.push_back({{103, 50}, {111, 194}});
+                regions.push_back({{47, 50}, {55, 194}});
+                regions.push_back({{72, 1}, {87, 194}});
+                regions.push_back({{63, 146}, {95, 194}});
+            }
+        }else{
+            regions.push_back({{0, 0}, {160, 210}});
+        }
+
+        return regions;
+    }
+
     // Detect items in the entire screen
-    std::vector<std::pair<std::string, std::pair<int, int>>> detect_items_entire_screen() const {
+    std::vector<std::pair<std::string, std::pair<int, int>>> detect_items_entire_screen(int room_id)  {
         std::vector<std::pair<std::string, std::pair<int, int>>> detected_items;
-        auto regions = regions_for_cube();
-        auto cube_coords = find_cube_without_reference();
+        auto regions = get_room_regions(room_id);
+        auto cube_coords = find_cube_without_reference(regions);
 
         // Collect candidate pixels (non-grey) in entire screen
         std::set<std::pair<int, int>> candidates;
@@ -519,7 +806,7 @@ struct MyALEScreen {
         return detected_items;
     }
     
-    std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions_for_cube() const {
+    std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions_for_cube()  {
         std::vector<std::pair<std::pair<int,int>, std::pair<int, int>>> regions;
 
         // Get key colors from the screen
@@ -873,7 +1160,7 @@ struct MyALEScreen {
     }
         // Add packing functions for adventure features
     static int pack_adventure_room_feature(int room_id) {
-        assert(room_id >= 0 && room_id < 10);
+        assert(room_id >= 0 && room_id <= 13);
         return adventure_room_start_ + room_id;
     }
 
