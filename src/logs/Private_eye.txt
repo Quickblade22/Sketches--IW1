@@ -1,0 +1,1087 @@
+
+options:
+  --ale-logging::logger-mode error \
+  --alpha 50000 \
+  --debug-threshold 0 \
+  --discount 1 \
+  --features 3 \
+  --fixed-action-sequence none \
+  --frames-background-image 100 \
+  --frameskip 15 \
+  --initial-random-noops 30 \
+  --logging::logger-mode info \
+  --lookahead-caching 2 \
+  --lookahead_depth 100 \
+  --max-depth 1500 \
+  --max-execution-length 18000 \
+  --max-rep 30 \
+  --nodes-threshold 50000 \
+  --num-episodes 1 \
+  --planner bfs \
+  --prefix-length-to-execute 0 \
+  --printing-sketches 0 \
+  --rom /root/modify/atari-roms/openai-gym/group_3/private_eye.bin \
+  --seed 0 \
+  --simulator-budget 5000000 \
+  --time-budget 100000 \
+  --width 1
+Action 0: 0
+Action 1: 1
+Action 2: 2
+Action 3: 3
+Action 4: 4
+Action 5: 5
+[32;1mlogging::Logger::Info: [0mplanner=bfs(frameskip=15,minimal-action-set=0,features=3,simulator-budget=5000000,time-budget=100000.000000,novelty-subtables=0,random-actions=1,max-rep=30,discount=1.000000,alpha=50000.000000,use-alpha-to-update-reward-for-death=0,nodes-threshold=50000,break-ties-using-rewards=0)
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=23, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=na, #tips=na, height=na
+simulator calls: 23 simulator budget: 5000000
+[32;1mlogging::Logger::Info: [0mqueue: sz=1
+[32;1mlogging::Logger::Info: [0mbfs: stopping search, queue empty=0, simulator budget reached=1, time budget reached=1, fulfillment branch full=1
+Root node preconditions: 
+Setting item state for node with action: 0 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+Detected room: 0 with 0 bricks.
+
+SKETCH 0 PREc (Go to a transition room): | !border_in_room=1 | !room_2=1 | ACTIVE
+Detected room: 0 with 0 bricks.
+
+SKETCH 2 PREc (Go to a border room): | !border_in_room=1 | room_3=0 | INACTIVE
+Detected: vehicle at (121, 167 with size 110)
+Detected: tire at (114, 173 with size 18)
+Detected: detective_hat at (119, 152 with size 13)
+Detected: tire at (130, 173 with size 18)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Using hat position Detective located at (119, 152) in state: driving
+Detected: vehicle at (121, 167 with size 110)
+Detected: tire at (114, 173 with size 18)
+Detected: detective_hat at (119, 152 with size 13)
+Detected: tire at (130, 173 with size 18)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Witness Manhattan distance: 171 (detective at 119,152, witness at 47,53)
+
+SKETCH 3 PREc (Go to a border room): | border_in_room=0 | near_witness=0 | witness_distance=171 | INACTIVE
+Detected room: 0 with 0 bricks.
+Detected: vehicle at (121, 167 with size 110)
+Detected: tire at (114, 173 with size 18)
+Detected: detective_hat at (119, 152 with size 13)
+Detected: tire at (130, 173 with size 18)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Using hat position Detective located at (119, 152) in state: driving
+Detected: vehicle at (121, 167 with size 110)
+Detected: tire at (114, 173 with size 18)
+Detected: detective_hat at (119, 152 with size 13)
+Detected: tire at (130, 173 with size 18)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: detective_collar at (117, 155 with size 2)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Detected: witness at (47, 53 with size 8)
+Detected: witness at (47, 66 with size 8)
+Detected: witness at (79, 53 with size 8)
+Detected: witness at (79, 66 with size 8)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: witness at (79, 40 with size 8)
+Detected: witness at (83, 42 with size 9)
+Detected: witness at (111, 53 with size 8)
+Detected: witness at (111, 66 with size 8)
+Witness Manhattan distance: 171 (detective at 119,152, witness at 47,53)
+
+SKETCH 4 PREc (Go to a transition room): | border_in_room=0 | !room_1=1 | INACTIVE
+Sketches pre: 1 0 0 0 
+Setting node state for node with action: 0 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+---------------------------------------------------------------------------------
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 1 4 4 
+checking sketches preconditions and goals for best node: 4
+Setting item state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+SKETCH 0 GOAL Computation 
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+SKETCH 0 GOAL: ACHIEVED | !border_in_room=1 | room_2=1
+SKETCH 2 GOAL Computation 
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+No witness found for distance calculation
+SKETCH 2 GOAL: IN PROGRESS | border_in_room=0 | witness_distance=-2 | near_witness=0 | !room_3=1
+SKETCH 3 GOAL Computation 
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+No witness found for distance calculation
+SKETCH 3 GOAL: IN PROGRESS | border_in_room=0 | detective_in_room=1 | witness_distance=-2 | near_witness=1
+SKETCH 4 GOAL Computation 
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+SKETCH 4 GOAL: ACHIEVED | !border_in_room=1 | detective_in_room=1 | room_1=1
+Sketches post: 1 0 0 1 
+Setting node state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+Setting item state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+
+SKETCH 0 PREc (Go to a transition room): | !border_in_room=1 | !room_2=0 | INACTIVE
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+
+SKETCH 2 PREc (Go to a border room): | !border_in_room=1 | room_3=1 | ACTIVE
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+No witness found for distance calculation
+
+SKETCH 3 PREc (Go to a border room): | border_in_room=0 | near_witness=0 | witness_distance=-2 | INACTIVE
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+No witness found for distance calculation
+
+SKETCH 4 PREc (Go to a transition room): | border_in_room=0 | !room_1=0 | INACTIVE
+Sketches pre: 0 1 0 0 
+Setting node state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+----------------------------------------------------- 
+distance to items: ykey: best node = -1 root= -1 ysword: best node = -1 root= -1 bkey: best node = -1 root= -1 chalice: best node = -1 root= -1
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:432145/20598848,] #nodes=12451 #tips=10376 height=[26:13,25,25,8,10,6,] #expansions=2075 #sim=11908 total-time=2745.94 simulator-time=55.5257 reset-time=0.022078 get/set-state-time=3.05866 expand-time=0.205565 update-novelty-time=1.91775 get-atoms-calls=11885 get-atoms-time=126.139 novel-atom-time=9.15771
+bfs: total time: 2745.94 seconds
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=25, actions=[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=15
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=30
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=45
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=60
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=75
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=90
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=105
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=120
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=135
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=150
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=165
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=180
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=195
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=210
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=225
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=240
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=255
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=270
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=285
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=300
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=315
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=330
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=345
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=360
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=375
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=48, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+simulator calls: 0 simulator budget: 5000000
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+[32;1mlogging::Logger::Info: [0mbfs: stopping search, queue empty=0, simulator budget reached=1, time budget reached=1, fulfillment branch full=1
+Root node preconditions: 
+Setting item state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+
+SKETCH 0 PREc (Go to a transition room): | !border_in_room=1 | !room_2=0 | INACTIVE
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+
+SKETCH 2 PREc (Go to a border room): | !border_in_room=1 | room_3=1 | ACTIVE
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+No witness found for distance calculation
+
+SKETCH 3 PREc (Go to a border room): | border_in_room=0 | near_witness=0 | witness_distance=-2 | INACTIVE
+15 bricks detected, assigning room 2.
+Detected room: 2 with 15 bricks.
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Using hat position Detective located at (145, 62) in state: jumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+Detective located via collar at (145, 62) in state: jumping
+Detective located at (145, 62) in state: using locate dectectivejumping
+Detected: vehicle at (143, 153 with size 110)
+Detected: tire at (134, 159 with size 18)
+Detected: detective_hat at (145, 62 with size 13)
+Detected: tire at (150, 159 with size 18)
+Detected: brick at (24, 66 with size 20)
+Detected: brick at (24, 78 with size 20)
+Detected: brick at (27, 72 with size 20)
+Detected: brick at (50, 96 with size 20)
+Detected: brick at (50, 108 with size 20)
+Detected: brick at (53, 102 with size 20)
+Detected: brick at (56, 66 with size 20)
+Detected: brick at (56, 78 with size 20)
+Detected: brick at (59, 72 with size 20)
+Detected: brick at (114, 96 with size 20)
+Detected: brick at (114, 108 with size 20)
+Detected: brick at (117, 102 with size 20)
+Detected: brick at (152, 66 with size 20)
+Detected: brick at (152, 78 with size 20)
+Detected: brick at (155, 72 with size 20)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_collar at (148, 65 with size 2)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (144, 77 with size 39)
+No witness found for distance calculation
+
+SKETCH 4 PREc (Go to a transition room): | border_in_room=0 | !room_1=0 | INACTIVE
+Sketches pre: 0 1 0 0 
+Setting node state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+---------------------------------------------------------------------------------
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 4 4 4 4 4 4 1 4 4 
+checking sketches preconditions and goals for best node: 4
+Setting item state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+SKETCH 0 GOAL Computation 
+Detected room: 0 with 0 bricks.
+SKETCH 0 GOAL: IN PROGRESS | !border_in_room=0 | room_2=0
+SKETCH 2 GOAL Computation 
+Detected room: 0 with 0 bricks.
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Using hat position Detective located at (148, 62) in state: jumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Detective located via collar at (148, 62) in state: jumping
+Detective located at (148, 62) in state: using locate dectectivejumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Witness Manhattan distance: 109 (detective at 148,62, witness at 40,61)
+SKETCH 2 GOAL: ACHIEVED | border_in_room=1 | witness_distance=109 | near_witness=1 | !room_3=1
+SKETCH 3 GOAL Computation 
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Using hat position Detective located at (148, 62) in state: jumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Detective located via collar at (148, 62) in state: jumping
+Detective located at (148, 62) in state: using locate dectectivejumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Using hat position Detective located at (148, 62) in state: jumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Detective located via collar at (148, 62) in state: jumping
+Detective located at (148, 62) in state: using locate dectectivejumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Witness Manhattan distance: 109 (detective at 148,62, witness at 40,61)
+SKETCH 3 GOAL: IN PROGRESS | border_in_room=1 | detective_in_room=1 | witness_distance=109 | near_witness=0
+SKETCH 4 GOAL Computation 
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Using hat position Detective located at (148, 62) in state: jumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Detective located via collar at (148, 62) in state: jumping
+Detective located at (148, 62) in state: using locate dectectivejumping
+Detected room: 0 with 0 bricks.
+SKETCH 4 GOAL: IN PROGRESS | !border_in_room=0 | detective_in_room=1 | room_1=0
+Sketches post: 0 1 0 0 
+Setting node state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+Setting item state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+Detected room: 0 with 0 bricks.
+
+SKETCH 0 PREc (Go to a transition room): | !border_in_room=0 | !room_2=1 | INACTIVE
+Detected room: 0 with 0 bricks.
+
+SKETCH 2 PREc (Go to a border room): | !border_in_room=0 | room_3=0 | INACTIVE
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Using hat position Detective located at (148, 62) in state: jumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Detective located via collar at (148, 62) in state: jumping
+Detective located at (148, 62) in state: using locate dectectivejumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Witness Manhattan distance: 109 (detective at 148,62, witness at 40,61)
+
+SKETCH 3 PREc (Go to a border room): | border_in_room=1 | near_witness=1 | witness_distance=109 | ACTIVE
+Detected room: 0 with 0 bricks.
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Using hat position Detective located at (148, 62) in state: jumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Detective located via collar at (148, 62) in state: jumping
+Detective located at (148, 62) in state: using locate dectectivejumping
+Detected: vehicle at (146, 153 with size 110)
+Detected: tire at (137, 159 with size 18)
+Detected: detective_hat at (148, 62 with size 13)
+Detected: tire at (153, 159 with size 18)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: detective_collar at (151, 65 with size 2)
+Detected: witness at (40, 61 with size 9)
+Detected: witness at (40, 61 with size 9)
+Detected: detective_shirt at (85, 190 with size 36)
+Detected: detective_shirt at (147, 77 with size 39)
+Witness Manhattan distance: 109 (detective at 148,62, witness at 40,61)
+
+SKETCH 4 PREc (Go to a transition room): | border_in_room=1 | !room_1=1 | INACTIVE
+Sketches pre: 0 0 1 0 
+Setting node state for node with action: 4 ykeyt:0 bkeyt:0 yswrt:0 chalicet:0 ydragon:0 gdragon:0 Last_room_color:1
+----------------------------------------------------- 
+distance to items: ykey: best node = -1 root= -1 ysword: best node = -1 root= -1 bkey: best node = -1 root= -1 chalice: best node = -1 root= -1
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:291315/20598848,] #nodes=3079 #tips=2566 height=[10:8,9,9,0,0,0,] #expansions=512 #sim=2657 total-time=518.967 simulator-time=12.6426 reset-time=0 get/set-state-time=0.551514 expand-time=0.027832 update-novelty-time=0.490967 get-atoms-calls=2657 get-atoms-time=18.9634 novel-atom-time=2.79712
+bfs: total time: 518.967 seconds
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=9, actions=[4,4,4,4,4,4,1,4,4,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=390
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=405
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=420
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=435
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=450
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=465
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=480
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=495
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=510
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=57, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,1,4,4,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+simulator calls: 0 simulator budget: 5000000
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+options:
+  --ale-logging::logger-mode error \
+  --alpha 50000 \
+  --debug-threshold 0 \
+  --discount 1 \
+  --features 3 \
+  --fixed-action-sequence none \
+  --frames-background-image 100 \
+  --frameskip 15 \
+  --initial-random-noops 30 \
+  --logging::logger-mode info \
+  --lookahead-caching 2 \
+  --lookahead_depth 100 \
+  --max-depth 1500 \
+  --max-execution-length 18000 \
+  --max-rep 30 \
+  --nodes-threshold 50000 \
+  --num-episodes 1 \
+  --planner bfs \
+  --prefix-length-to-execute 0 \
+  --printing-sketches 0 \
+  --rom /root/modify/atari-roms/openai-gym/group_3/private_eye.bin \
+  --seed 0 \
+  --simulator-budget 5000000 \
+  --time-budget 100000 \
+  --width 1
+Action 0: 0
+Action 1: 1
+Action 2: 2
+Action 3: 3
+Action 4: 4
+Action 5: 5
+[32;1mlogging::Logger::Info: [0mplanner=bfs(frameskip=15,minimal-action-set=0,features=3,simulator-budget=5000000,time-budget=100000.000000,novelty-subtables=0,random-actions=1,max-rep=30,discount=1.000000,alpha=50000.000000,use-alpha-to-update-reward-for-death=0,nodes-threshold=50000,break-ties-using-rewards=0)

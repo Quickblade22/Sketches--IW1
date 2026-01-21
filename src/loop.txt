@@ -1,0 +1,95 @@
+root node at depth 0 is 3
+Initial queue size: 6
+  node with action 5and parent is 3 at depth 1
+  node with action 3and parent is 3 at depth 1
+  node with action 0and parent is 3 at depth 1
+  node with action 1and parent is 3 at depth 1
+  node with action 4and parent is 3 at depth 1
+  node with action 2and parent is 3 at depth 1
+Expanding current node with action 5 all children and parent node is 3 at depth 1
+Expanding current node with action 3 all children and parent node is 3 at depth 1
+Pruning node with action 0 at depth 1and parent node is 3 due to novelty 
+Expanding current node with action 4 all children and parent node is 3 at depth 1
+Pruning node with action 1 at depth 1and parent node is 3 due to novelty 
+Pruning node with action 2 at depth 1and parent node is 3 due to novelty 
+Pruning node with action 4 at depth 2and parent node is 5 due to novelty 
+Pruning node with action 0 at depth 2and parent node is 5 due to novelty 
+Expanding current node with action 5 all children and parent node is 4 at depth 2
+Pruning node with action 1 at depth 2and parent node is 4 due to novelty 
+Pruning node with action 2 at depth 2and parent node is 4 due to novelty 
+Expanding current node with action 3 all children and parent node is 4 at depth 2
+Expanding current node with action 4 all children and parent node is 4 at depth 2
+Pruning node with action 2 at depth 2and parent node is 3 due to novelty 
+Pruning node with action 5 at depth 2and parent node is 5 due to novelty 
+Pruning node with action 3 at depth 2and parent node is 3 due to novelty 
+Expanding current node with action 4 all children and parent node is 3 at depth 2
+Pruning node with action 5 at depth 2and parent node is 3 due to novelty 
+Pruning node with action 0 at depth 2and parent node is 3 due to novelty 
+Pruning node with action 0 at depth 2and parent node is 4 due to novelty 
+Pruning node with action 1 at depth 2and parent node is 5 due to novelty 
+Pruning node with action 2 at depth 2and parent node is 5 due to novelty 
+Pruning node with action 1 at depth 2and parent node is 3 due to novelty 
+Pruning node with action 3 at depth 2and parent node is 5 due to novelty 
+Pruning node with action 0 at depth 3and parent node is 5 due to novelty 
+Pruning node with action 2 at depth 3and parent node is 5 due to novelty 
+Pruning node with action 1 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 0 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 5 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 5 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 2 at depth 3and parent node is 3 due to novelty 
+Pruning node with action 0 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 4 at depth 3and parent node is 3 due to novelty 
+Expanding current node with action 4 all children and parent node is 4 at depth 3
+Pruning node with action 3 at depth 3and parent node is 5 due to novelty 
+Pruning node with action 3 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 1 at depth 3and parent node is 5 due to novelty 
+Pruning node with action 5 at depth 3and parent node is 5 due to novelty 
+Pruning node with action 0 at depth 3and parent node is 3 due to novelty 
+Expanding current node with action 2 all children and parent node is 4 at depth 3
+Pruning node with action 4 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 1 at depth 3and parent node is 3 due to novelty 
+Pruning node with action 3 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 1 at depth 3and parent node is 4 due to novelty 
+Pruning node with action 3 at depth 3and parent node is 3 due to novelty 
+Pruning node with action 5 at depth 3and parent node is 3 due to novelty 
+Expanding current node with action 2 all children and parent node is 4 at depth 3
+Pruning node with action 4 at depth 3and parent node is 5 due to novelty 
+Expanding current node with action 5 all children and parent node is 4 at depth 4
+Pruning node with action 0 at depth 4and parent node is 4 due to novelty 
+Pruning node with action 4 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 0 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 1 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 4and parent node is 2 due to novelty 
+Expanding current node with action 2 all children and parent node is 4 at depth 4
+Pruning node with action 4 at depth 4and parent node is 4 due to novelty 
+Pruning node with action 3 at depth 4and parent node is 4 due to novelty 
+Pruning node with action 0 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 2 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 1 at depth 4and parent node is 4 due to novelty 
+Pruning node with action 1 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 3 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 4 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 2 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 3 at depth 4and parent node is 2 due to novelty 
+Pruning node with action 0 at depth 5and parent node is 5 due to novelty 
+Pruning node with action 2 at depth 5and parent node is 5 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 5 due to novelty 
+Pruning node with action 4 at depth 5and parent node is 5 due to novelty 
+Pruning node with action 1 at depth 5and parent node is 5 due to novelty 
+Pruning node with action 3 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 0 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 3 at depth 5and parent node is 5 due to novelty 
+Pruning node with action 4 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 2 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 1 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 
+Pruning node with action 5 at depth 5and parent node is 2 due to novelty 

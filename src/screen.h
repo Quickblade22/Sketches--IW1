@@ -1,4 +1,4 @@
-// 2026 Aaditya Mehta 
+// (c) 2017 Blai Bonet
 
 #ifndef SCREEN_H
 #define SCREEN_H

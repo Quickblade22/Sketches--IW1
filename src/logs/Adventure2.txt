@@ -1,0 +1,331 @@
+options:
+  --ale-logging::logger-mode error \
+  --alpha 50000 \
+  --debug-threshold 0 \
+  --discount 1 \
+  --features 3 \
+  --fixed-action-sequence none \
+  --frames-background-image 100 \
+  --frameskip 15 \
+  --initial-random-noops 30 \
+  --logging::logger-mode info \
+  --lookahead-caching 2 \
+  --lookahead_depth 100 \
+  --max-depth 1500 \
+  --max-execution-length 18000 \
+  --max-rep 30 \
+  --nodes-threshold 50000 \
+  --num-episodes 1 \
+  --planner bfs \
+  --prefix-length-to-execute 0 \
+  --printing-sketches 0 \
+  --rom /root/Adventure.bin \
+  --seed 0 \
+  --simulator-budget 500000 \
+  --time-budget 10000 \
+  --width 1
+Action 0: 0
+Action 1: 1
+Action 2: 2
+Action 3: 3
+Action 4: 4
+Action 5: 5
+[32;1mlogging::Logger::Info: [0mplanner=bfs(frameskip=15,minimal-action-set=0,features=3,simulator-budget=500000,time-budget=10000.000000,novelty-subtables=0,random-actions=0,max-rep=30,discount=1.000000,alpha=50000.000000,use-alpha-to-update-reward-for-death=0,nodes-threshold=50000,break-ties-using-rewards=0)
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=23, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=na, #tips=na, height=na
+[32;1mlogging::Logger::Info: [0mqueue: sz=1
+
+SKETCH 0 PRE: D=1 | !ykey=1 | ykeyr=1 | reachednav1=1 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=0 | door=0 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=0 | door_open=0 | INACTIVE
+Sketches pre: 1 0 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 4 4 4 2 2 
+
+not touched 
+found one yellow_key at35 87 cube at33 89 cubecenter at37 91
+ item not found in items
+ Clusters found: 2
+ founnd ykeyt 1419
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:24795/20598848,] #nodes=359 #tips=276 height=[6:5,5,5,0,0,3,] #expansions=55 #sim=217 total-time=8.78167 simulator-time=0.415959 reset-time=0.00877202 get/set-state-time=0.093434 expand-time=0.000349402 update-novelty-time=0.00711739 get-atoms-calls=194 get-atoms-time=0.196495 novel-atom-time=0.0230404
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=5, actions=[4,4,4,2,2,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=15
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=30
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=45
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=60
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=75
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=28, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 5 5 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:11691/20598848,] #nodes=79 #tips=66 height=[3:2,2,2,2,0,1,] #expansions=12 #sim=15 total-time=0.412578 simulator-time=0.0295849 reset-time=0 get/set-state-time=0.00363541 expand-time=2.19345e-05 update-novelty-time=0.00145626 get-atoms-calls=15 get-atoms-time=0.014039 novel-atom-time=0.000802994
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=2, actions=[5,5,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=90
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=105
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=30, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 3 3 5 3 5 3 2 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:25993/20598848,] #nodes=743 #tips=561 height=[8:6,6,7,7,0,3,] #expansions=111 #sim=559 total-time=16.9665 simulator-time=1.07561 reset-time=0 get/set-state-time=0.186965 expand-time=0.000656128 update-novelty-time=0.0129738 get-atoms-calls=559 get-atoms-time=0.521107 novel-atom-time=0.0793304
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=7, actions=[3,3,5,3,5,3,2,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=120
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=135
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=150
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=165
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=180
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=195
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=210
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=37, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 3 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:16362/20598848,] #nodes=19 #tips=16 height=[2:1,0,1,0,0,0,] #expansions=2 #sim=2 total-time=0.0894871 simulator-time=0.00401306 reset-time=0 get/set-state-time=0.000246048 expand-time=9.53674e-06 update-novelty-time=0.000494003 get-atoms-calls=2 get-atoms-time=0.00219917 novel-atom-time=7.62939e-06
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=1, actions=[3,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=225
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=38, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 4 5 4 2 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:25312/20598848,] #nodes=340 #tips=271 height=[5:3,4,4,4,0,0,] #expansions=53 #sim=138 total-time=2.91945 simulator-time=0.25971 reset-time=0 get/set-state-time=0.0301228 expand-time=0.000318527 update-novelty-time=0.00646019 get-atoms-calls=138 get-atoms-time=0.126362 novel-atom-time=0.0159512
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=4, actions=[4,5,4,2,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=240
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=255
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=270
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=285
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=42, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 3 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:16361/20598848,] #nodes=19 #tips=16 height=[2:1,0,1,0,0,0,] #expansions=2 #sim=2 total-time=0.0680103 simulator-time=0.0038929 reset-time=0 get/set-state-time=0.000185013 expand-time=5.72205e-06 update-novelty-time=0.000329971 get-atoms-calls=2 get-atoms-time=0.00195885 novel-atom-time=7.62939e-06
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=1, actions=[3,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=300
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=43, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 5 2 4 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:23928/20598848,] #nodes=147 #tips=121 height=[4:3,2,3,2,0,2,] #expansions=23 #sim=44 total-time=0.982443 simulator-time=0.0863934 reset-time=0 get/set-state-time=0.00914574 expand-time=5.53131e-05 update-novelty-time=0.00282097 get-atoms-calls=44 get-atoms-time=0.0415936 novel-atom-time=0.00426292
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=3, actions=[5,2,4,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=315
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=330
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=345
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=46, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=1, #tips=1, height=0
+[32;1mlogging::Logger::Info: [0mqueue: sz=1
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 5 3 2 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:24181/20598848,] #nodes=153 #tips=126 height=[4:3,2,3,3,0,2,] #expansions=25 #sim=43 total-time=0.725941 simulator-time=0.079464 reset-time=0 get/set-state-time=0.0063591 expand-time=5.72205e-05 update-novelty-time=0.00279236 get-atoms-calls=43 get-atoms-time=0.0385323 novel-atom-time=0.00420761
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=3, actions=[5,3,2,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=360
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=375
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=390
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=49, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 3 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:16362/20598848,] #nodes=19 #tips=16 height=[2:1,0,1,0,0,0,] #expansions=2 #sim=2 total-time=0.0629921 simulator-time=0.00390244 reset-time=0 get/set-state-time=0.000190735 expand-time=7.62939e-06 update-novelty-time=0.000305176 get-atoms-calls=2 get-atoms-time=0.00189972 novel-atom-time=7.62939e-06
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=1, actions=[3,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=405
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=50, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 4 5 4 2 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:25312/20598848,] #nodes=340 #tips=271 height=[5:3,4,4,4,0,0,] #expansions=53 #sim=138 total-time=2.96769 simulator-time=0.261028 reset-time=0 get/set-state-time=0.0275917 expand-time=0.000289917 update-novelty-time=0.00598907 get-atoms-calls=138 get-atoms-time=0.125019 novel-atom-time=0.0148277
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=4, actions=[4,5,4,2,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=420
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=435
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=450
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=465
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=54, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,4,5,4,2,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 3 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:16361/20598848,] #nodes=19 #tips=16 height=[2:1,0,1,0,0,0,] #expansions=2 #sim=2 total-time=0.0831299 simulator-time=0.00369263 reset-time=0 get/set-state-time=0.000179291 expand-time=3.8147e-06 update-novelty-time=0.000377655 get-atoms-calls=2 get-atoms-time=0.00177002 novel-atom-time=7.62939e-06
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=1, actions=[3,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=480
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=55, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,4,5,4,2,3,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 5 2 4 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:23928/20598848,] #nodes=147 #tips=121 height=[4:3,2,3,2,0,2,] #expansions=23 #sim=44 total-time=0.921825 simulator-time=0.0799294 reset-time=0 get/set-state-time=0.00865555 expand-time=5.72205e-05 update-novelty-time=0.00259018 get-atoms-calls=44 get-atoms-time=0.0387421 novel-atom-time=0.00419617
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=3, actions=[5,2,4,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=495
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=510
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=525
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=58, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,4,5,4,2,3,5,2,4,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=1, #tips=1, height=0
+[32;1mlogging::Logger::Info: [0mqueue: sz=1
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 5 3 2 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:24181/20598848,] #nodes=153 #tips=126 height=[4:3,2,3,3,0,2,] #expansions=25 #sim=43 total-time=0.805431 simulator-time=0.0844879 reset-time=0 get/set-state-time=0.00728989 expand-time=6.86646e-05 update-novelty-time=0.00363541 get-atoms-calls=43 get-atoms-time=0.042675 novel-atom-time=0.00493622
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=3, actions=[5,3,2,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=540
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=555
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=570
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=61, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6
+
+SKETCH 0 PRE: D=1 | !ykey=0 | ykeyr=1 | reachednav1=1 | INACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door=0 | ACTIVE
+SKETCH 1 PRE: D=1 | ykey=1 | door_open=0 | INACTIVE
+Sketches pre: 0 1 0 
+sketches exploitation with depth lookahead
+Action in fulfillment branch: 3 
+
+already touched
+found cube carrying yellow_key
+detect_ykey_printing: 1
+ ykeyt1 ykey found: 11
+[33;1mlogging::Logger::Stats: [0mdecision-stats: #entries=[0:16362/20598848,] #nodes=19 #tips=16 height=[2:1,0,1,0,0,0,] #expansions=2 #sim=2 total-time=0.0863152 simulator-time=0.00351334 reset-time=0 get/set-state-time=0.000171661 expand-time=3.8147e-06 update-novelty-time=0.000293732 get-atoms-calls=2 get-atoms-time=0.00191116 novel-atom-time=7.62939e-06
+[32;1mlogging::Logger::Info: [0mexecutable-prefix: len=1, actions=[3,]
+[33;1mlogging::Logger::Stats: [0mstep-stats: acc-reward=0, acc-frames=585
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=62, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,2,2,5,5,3,3,5,3,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,4,5,4,2,3,5,2,4,5,3,2,3,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=7, #tips=6, height=1
+[32;1mlogging::Logger::Info: [0mqueue: sz=6

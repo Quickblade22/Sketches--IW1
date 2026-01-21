@@ -1,4 +1,4 @@
-// 2026 Aaditya Mehta 
+// (c) 2017 Blai Bonet
 
 #ifndef BFS_IW_H
 #define BFS_IW_H
