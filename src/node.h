@@ -27,6 +27,7 @@ class Node {
     float reward_;                           // reward for this node
     float path_reward_;                      // reward of full path leading to this node
     int is_info_valid_;                      // is info valid? (0=no, 1=partial, 2=full)
+    bool sketches_calculated_ ;              // have sketches been calculated for this node (0=no, 1=yes)
     bool terminal_;                          // is node a terminal node?
     float value_;                            // backed up value
     int ale_lives_;                          // remaining ALE lives
@@ -70,6 +71,9 @@ class Node {
         sibling_(nullptr),
         parent_(parent) {
         //eventually get rid of it 
+        sketches_calculated_ = false; 
+        pre = std::vector<bool> {};
+        post = std::vector<bool> {};
         grandfather = (parent != nullptr) ? parent->parent_ : nullptr;
         node_bkeyt = (parent != nullptr) ? parent->node_bkeyt: false;
         node_ykeyt = (parent != nullptr) ? parent->node_ykeyt: false;

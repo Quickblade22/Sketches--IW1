@@ -184,6 +184,8 @@ struct BfsIW : SimPlanner {
             bfs(prefix, root, novelty_table_map);
         }
 
+        float printing_root_sketch_rules_time = 0;
+        float printing_root_sketch_rules_time_start = 0;
         // if nothing was expanded, return random actions (it can only happen with small time budget)
         if( root->num_children_ == 0 ) {
              logging::Logger::Info << logging::Logger::green() << " very small time bugdet" ; 
@@ -205,6 +207,7 @@ struct BfsIW : SimPlanner {
                           << " value=" << root->value_
                           << ", imm-reward=" << root->reward_
                           << ", children=[";
+            printing_root_sketch_rules_time_start = Utils::read_time_in_seconds();
             if(impotant_debug|| transition_printing_debug) std::cout << "Root node preconditions: " << std::endl;
             bool printing = transition_printing_debug ? true : false;
              if(root->parent_->screen_pixels_.size() > 0)  {
@@ -224,7 +227,7 @@ struct BfsIW : SimPlanner {
             }
             
             if(transition_printing_debug) std::cout << "---------------------------------------------------------------------------------" << std::endl;
-            
+            printing_root_sketch_rules_time = Utils::read_time_in_seconds() - printing_root_sketch_rules_time_start;
             
             // compute branch
 
@@ -461,8 +464,11 @@ struct BfsIW : SimPlanner {
         // stop timer and print stats
         total_time_ = Utils::read_time_in_seconds() - start_time + debug_time_stop;
         print_stats(logging::Logger::Stats, *root, novelty_table_map);
-        if(impotant_debug) std::cout << "bfs: total time: " << total_time_ << " seconds" << std::endl;
-        std::cout << "Number of expansions: " << num_expansions_  << " Number of pruned nodes: " << pruned_nodes_ << " so a ratio of " << (pruned_nodes_  / num_expansions_ ) << "%" <<std::endl ;
+        if(impotant_debug) {
+            std::cout << "bfs: total time: " << total_time_ << " seconds and printing root sketch rules time: " << printing_root_sketch_rules_time << " seconds  " << std::endl;
+            std::cout << "Number of expansions: " << num_expansions_  << " Number of pruned nodes: " << pruned_nodes_ << " so a ratio of " << (pruned_nodes_  / num_expansions_ ) << "%" <<std::endl ;
+        }
+        
         // return root node
         return root;
     }
@@ -527,19 +533,22 @@ struct BfsIW : SimPlanner {
                 update_info_time_ += Utils::read_time_in_seconds() - start_update_info_time;
                 update_info_calls_++;
             }
-            if(node->parent_ != nullptr && !node->parent_->screen_pixels_.empty()) {
-                    node->pre = check_sketches_preconditions(node->parent_->screen_pixels_, node->screen_pixels_, *this, node);
-                    std::vector<pixel_t> typical = node->parent_->screen_pixels_;
-                    if(node->grandfather != nullptr && !node->grandfather->screen_pixels_.empty()) {
-                        typical = node->grandfather->screen_pixels_;
-                    }
-                    node->post = check_sketches_goals(node->parent_->screen_pixels_, node->screen_pixels_, typical, *this, node);
-            } else {
-                    node->pre = check_sketches_preconditions(node->screen_pixels_, node->screen_pixels_, *this, node);
-                    node->post = check_sketches_goals(node->screen_pixels_, node->screen_pixels_, node->screen_pixels_, *this, node);
-            }
+           if(node->sketches_calculated_ != 1){
+                if(node->parent_ != nullptr && !node->parent_->screen_pixels_.empty()) {
+                        node->pre = check_sketches_preconditions(node->parent_->screen_pixels_, node->screen_pixels_, *this, node);
+                        std::vector<pixel_t> typical = node->parent_->screen_pixels_;
+                        if(node->grandfather != nullptr && !node->grandfather->screen_pixels_.empty()) {
+                            typical = node->grandfather->screen_pixels_;
+                        }
+                        node->post = check_sketches_goals(node->parent_->screen_pixels_, node->screen_pixels_, typical, *this, node);
+                } else {
+                        node->pre = check_sketches_preconditions(node->screen_pixels_, node->screen_pixels_, *this, node);
+                        node->post = check_sketches_goals(node->screen_pixels_, node->screen_pixels_, node->screen_pixels_, *this, node);
+                }
+                node->sketches_calculated_ = 1;
             //trial setting the fulfillment branch
 
+           }
             if( printing_debug && !fulfillment_branch_.empty()  && count == 0) {
                 std::cout << "fulfillment not empty" << std::endl;
                 count ++;
@@ -587,7 +596,7 @@ struct BfsIW : SimPlanner {
             // calculate novelty and prune
             bool increase_expansion = root->pre[15] || root->pre[17] || root->pre[18] || root->pre[19] ||root->pre[20] ; //  For which sketches to increase expansion
             // Set to true to enable sketches debug printing
-            bool skip = false;
+            bool skip = true;
             bool printing_sketches_debug = increase_expansion && skip; 
             bool novelty_table_printing = false;
             //action 2 at depth 2 --> novelty atom value 2 
@@ -676,7 +685,10 @@ struct BfsIW : SimPlanner {
                     2,4,4,4,4,4,4,2,4,4,2,2,2,4,4,4,4,4,5,4,
                     4,2,2,2,3,3*/
                 std::vector<int> action_series = {
-                    4,4,4,2,2, //getykey
+                    4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,3,3,3,3,3,3,3,5,3,3,3,3,5,3,3,3,5,0,0,5,2,5,3,3,3,3,1,3,5,5,5,5,4,4,4,4,5,4,4,2,4,2,4,2,3,3,3,2,2,2,2,4,4,4,4,4,4,4,4,4,4,4,4,2,2,4,4,4,4,4,4,2,4,4,2,2,2,4,4,4,4,4,5,4,4,2,2,2,3,3           
+                };
+                /* 
+                4,4,4,2,2, //getykey
                     5,5,3,3,3,2, //goyswordr
                     2,4,4,4, //get sword
                     3,3,5,5,5,5,4,5,4,4,4,4,4, //go ydragon r
@@ -690,10 +702,7 @@ struct BfsIW : SimPlanner {
                     4,4,4,4,5,4,4,4, //reach room 9 lower part
                     2,2, //upper part of 9
                     2,3,3 //lower part of 6
-                   
-                    
-                };
-                /* 
+
                 , 3,2,2, //upper part of 6
                     4,4, //room 9 2 phase
                     4,2, // room 8 

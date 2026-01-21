@@ -30,6 +30,7 @@ struct MyALEScreen {
 
     //static const size_t width_ = 160;
     //static const size_t height_ = 210; //210
+    //update 128 --> 256, then use skip function and see if the standard works better
     static const size_t num_basic_features_ = 16 * 14 * 128; // 28,672
     static const size_t num_bpros_features_t0_ = 6803136; // (dc,dr,k1,k2) where k1 < k2, number equal to 31 * 27 * 128 * 127 / 2
     static const size_t num_bpros_features_t1_ = 53504; // (dc,dr,k,k) where dc != 0 or dr != 0, number equal to (31 * 27 - 1) * 128 / 2
