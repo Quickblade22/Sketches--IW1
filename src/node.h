@@ -1,4 +1,4 @@
-// (c) 2017 Blai Bonet
+// 2026 Aaditya Mehta 
 
 #ifndef NODE_H
 #define NODE_H

@@ -1,4 +1,4 @@
-// (c) 2017 Blai Bonet
+// 2026 Aaditya Mehta 
 
 #ifndef SIM_PLANNER_H
 #define SIM_PLANNER_H
