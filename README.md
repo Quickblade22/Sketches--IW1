@@ -33,3 +33,5 @@ The project integrates sketch-based planning into a simulation planner to solve 
 
 - Ensure all dependencies are correctly linked during compilation.
 - Refer to the source code and comments for detailed algorithm descriptions and customization options.
+- another repo containting flexible patch sizes and other features are available at https://github.com/Quickblade22/Sketches--IW1_temporary
+- 
