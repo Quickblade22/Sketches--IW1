@@ -113,6 +113,7 @@ struct BfsIW : SimPlanner {
     const bool transtion_printing_debug_adventure = false; 
     const bool transition_printing_debug_private_eye = false;
     const bool analysis_printing_debug = true; // Set to true to enable analysis for log 
+    const bool printing_root_screen = true; 
     //const bool transition_printing_debugs = true; // Set to true to enable transition debug printing
     virtual Node* get_branch(ALEInterface &env,
                              const std::vector<Action> &prefix,
@@ -180,6 +181,7 @@ struct BfsIW : SimPlanner {
         root->reset_frame_rep_counters(frameskip_);
         root->recompute_path_rewards(root);
         // construct/extend lookahead tree
+        if(printing_root_screen && root->screen_pixels_.size() > 0) printing_screen(root->screen_pixels_);
         if( int(root->num_nodes()) < nodes_threshold_ ) {
             bfs(prefix, root, novelty_table_map);
         }
@@ -683,12 +685,13 @@ struct BfsIW : SimPlanner {
                     3,3,1,3,5,5,5,5,4,4,4,4,5,4,4,2,4,2,4,2,
                     3,3,3,2,2,2,2,4,4,4,4,4,4,4,4,4,4,4,4,2,
                     2,4,4,4,4,4,4,2,4,4,2,2,2,4,4,4,4,4,5,4,
-                    4,2,2,2,3,3*/
+                    4,2,2,2,3,3
+                    
+                    
+                     4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,3,3,3,3,3,3,3,5,3,3,3,3,5,3,3,3,5,0,0,5,2,5,3,3,3,3,1,3,5,5,5,5,4,4,4,4,5,4,4,2,4,2,4,2,3,3,3,2,2,2,2,4,4,4,4,4,4,4,4,4,4,4,4,2,2,4,4,4,4,4,4,2,4,4,2,2,2,4,4,4,4,4,5,4,4,2,2,2,3,3           
+                    */
                 std::vector<int> action_series = {
-                    4,4,4,2,2,5,5,3,3,3,2,2,4,4,4,3,3,5,5,5,5,4,5,4,4,4,4,4,5,5,5,3,3,0,0,2,3,3,3,3,3,3,3,5,3,3,3,3,5,3,3,3,5,0,0,5,2,5,3,3,3,3,1,3,5,5,5,5,4,4,4,4,5,4,4,2,4,2,4,2,3,3,3,2,2,2,2,4,4,4,4,4,4,4,4,4,4,4,4,2,2,4,4,4,4,4,4,2,4,4,2,2,2,4,4,4,4,4,5,4,4,2,2,2,3,3           
-                };
-                /* 
-                4,4,4,2,2, //getykey
+                   4,4,4,2,2, //getykey
                     5,5,3,3,3,2, //goyswordr
                     2,4,4,4, //get sword
                     3,3,5,5,5,5,4,5,4,4,4,4,4, //go ydragon r
@@ -702,15 +705,19 @@ struct BfsIW : SimPlanner {
                     4,4,4,4,5,4,4,4, //reach room 9 lower part
                     2,2, //upper part of 9
                     2,3,3 //lower part of 6
-
-                , 3,2,2, //upper part of 6
-                    4,4, //room 9 2 phase
+                    ,3,2,2, //upper part of 6 (finds with modified SIWR)
+                    4,4, //room 9 2 phase (finds also with normal SIWR)
                     4,2, // room 8 
-                    2,3,3,3 // room 7
-                3,2,2, //extra to complete the 15 sketch (finds it with the current changes )
-                4,4, // found on its own --> 16
-                4,2,(2) // 17 extra (same problem as 15) [finds it with current changes ]
-                2,3,3,3  //finds it on its own [with current changes ]
+                    2,3,3,3, // room 7
+                    3,2,2, //extra to complete the 15 sketch (finds it with the current changes )
+                    4,4, // found on its own --> 16
+                    4,2,// (2)  17 extra (same problem as 15) [finds it with current changes ]
+                    2,3,3,3  //finds it on its own [with current changes ]
+                };
+                /* 
+                
+
+                
                 --------------------------------------------------------------------------
                 than 2,2,3,3,4,2,2
                 (2,3,3,3,2,2,2,3,2,2 // if not split up the sketch (halfway) -
