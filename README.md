@@ -34,4 +34,6 @@ The project integrates sketch-based planning into a simulation planner to solve 
 - Ensure all dependencies are correctly linked during compilation.
 - Refer to the source code and comments for detailed algorithm descriptions and customization options.
 - another repo containting flexible patch sizes and other features are available at https://github.com/Quickblade22/Sketches--IW1_temporary
-- 
+- https://drive.google.com/file/d/1RqhyRZoqHbAYLpBAW2ILfEXUQfI6VSxT/view?usp=sharing shows standard SIWR executing with the current sketch rules
+- https://drive.google.com/file/d/1IS5Kl-TORHDdXljpQ-tM8TxpV2ojlEZ1/view?usp=sharing shows the modified SIWR agent completing the first major segment of Adventure after addressing feature representation challenges.
+- https://drive.google.com/file/d/1SuTDf1ee7i-PIhYEvtEjWrx9WtHMmcyT/view?usp=sharing illustrates the SIW agent exhibiting undirected exploration in Adventure.
