@@ -598,7 +598,7 @@ struct BfsIW : SimPlanner {
             // calculate novelty and prune
             bool increase_expansion = root->pre[15] || root->pre[17] || root->pre[18] || root->pre[19] ||root->pre[20] ; //  For which sketches to increase expansion
             // Set to true to enable sketches debug printing
-            bool skip = true;
+            bool skip = false;
             bool printing_sketches_debug = increase_expansion && skip; 
             bool novelty_table_printing = false;
             //action 2 at depth 2 --> novelty atom value 2 
@@ -705,7 +705,10 @@ struct BfsIW : SimPlanner {
                     4,4,4,4,5,4,4,4, //reach room 9 lower part
                     2,2, //upper part of 9
                     2,3,3 //lower part of 6
-                    ,3,2,2, //upper part of 6 (finds with modified SIWR)
+                   
+                };
+                /* 
+                 ,3,2,2, //upper part of 6 (finds with modified SIWR)
                     4,4, //room 9 2 phase (finds also with normal SIWR)
                     4,2, // room 8 
                     2,3,3,3, // room 7
@@ -713,9 +716,6 @@ struct BfsIW : SimPlanner {
                     4,4, // found on its own --> 16
                     4,2,// (2)  17 extra (same problem as 15) [finds it with current changes ]
                     2,3,3,3  //finds it on its own [with current changes ]
-                };
-                /* 
-                
 
                 
                 --------------------------------------------------------------------------

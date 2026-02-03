@@ -852,3 +852,50 @@ Screen Pixels:
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 End of Screen Pixels
+[31;1mlogging::Logger::Error: [0munrecognised option '-max-rep'
+options:
+  --ale-logging::logger-mode error \
+  --alpha 50000 \
+  --debug-threshold 0 \
+  --discount 1 \
+  --features 3 \
+  --fixed-action-sequence none \
+  --frames-background-image 100 \
+  --frameskip 15 \
+  --initial-random-noops 30 \
+  --logging::logger-mode info \
+  --lookahead-caching 2 \
+  --lookahead_depth 100 \
+  --max-depth 15000 \
+  --max-execution-length 18000 \
+  --max-rep 45 \
+  --nodes-threshold 500000 \
+  --num-episodes 1 \
+  --planner bfs \
+  --prefix-length-to-execute 0 \
+  --printing-sketches 0 \
+  --rom /root/Adventure.bin \
+  --seed 0 \
+  --simulator-budget 5000000 \
+  --time-budget 10000 \
+  --width 1
+Action 0: 0
+Action 1: 1
+Action 2: 2
+Action 3: 3
+Action 4: 4
+Action 5: 5
+BfsIW planner created with parameters:
+Action 0: 0
+Action 1: 1
+Action 2: 2
+Action 3: 3
+Action 4: 4
+Action 5: 5
+[32;1mlogging::Logger::Info: [0mplanner=bfs(frameskip=15,minimal-action-set=0,features=3,simulator-budget=5000000,time-budget=10000.000000,novelty-subtables=0,random-actions=1,max-rep=45,discount=1.000000,alpha=50000.000000,use-alpha-to-update-reward-for-death=0,nodes-threshold=500000,break-ties-using-rewards=0)
+[32;1mlogging::Logger::Info: [0m**** bfs: get branch ****
+[32;1mlogging::Logger::Info: [0mprefix: sz=23, actions=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]
+[32;1mlogging::Logger::Info: [0minput: #nodes=na, #tips=na, height=na
+simulator calls: 23 simulator budget: 5000000
+[32;1mlogging::Logger::Info: [0mqueue: sz=1
+Initial queue size: 1
